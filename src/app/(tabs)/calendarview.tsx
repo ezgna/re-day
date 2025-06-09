@@ -1,9 +1,12 @@
+import CancelButton from "@/src/components/CancelButton";
 import PastEntry from "@/src/components/PastEntry";
+import SaveButton from "@/src/components/SaveButton";
 import { deleteEntry, fetchEntries, initDB, updateEntry } from "@/src/database/db";
 import { Entry } from "@/src/database/types";
 import React, { useEffect, useState } from "react";
-import { Button, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Calendar } from "react-native-calendars";
+import { MarkingProps } from "react-native-calendars/src/calendar/day/marking";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const CalendarView = () => {
@@ -73,6 +76,23 @@ const CalendarView = () => {
 
   const filteredEntries = selected ? entries.filter((entry) => entry.created_at.slice(0, 10) === selected) : [];
 
+  const dotMarkedDates = entries.reduce((acc, entry) => {
+    const date = entry.created_at.slice(0, 10);
+    acc[date] = {
+      marked: true,
+      dotColor: date === selected ? "white" : "#00B0FF",
+    };
+    return acc;
+  }, {} as Record<string, MarkingProps>);
+
+  if (selected) {
+    dotMarkedDates[selected] = {
+      ...(dotMarkedDates[selected] || {}),
+      selected: true,
+      selectedColor: "#00B0FF",
+    };
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Calendar
@@ -80,18 +100,18 @@ const CalendarView = () => {
         onDayPress={(day) => {
           setSelected(day.dateString);
         }}
-        markedDates={{
-          [selected]: { selected: true, selectedColor: "orange" },
-        }}
+        markedDates={dotMarkedDates}
       />
       <View style={styles.entryContainer}>
         {editingId ? (
-          <View>
+          <View style={styles.editorCard}>
             <View style={styles.inputContainer}>
-              <TextInput style={styles.input} value={editingContent} onChangeText={setEditingContent} />
+              <TextInput style={styles.input} value={editingContent} onChangeText={setEditingContent} multiline />
+              <View style={styles.buttonContainer}>
+                <CancelButton onPress={handleCancel} />
+                <SaveButton onPress={handleUpdate} />
+              </View>
             </View>
-            <Button title="cancel" onPress={() => handleCancel()} />
-            <Button title="save" onPress={() => handleUpdate()} />
           </View>
         ) : null}
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
@@ -118,20 +138,34 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 3,
+    marginBottom: 14
   },
   entryContainer: {
     flex: 1, // for scrollView
-    paddingTop: 16,
+  },
+  editorCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+    marginBottom: 14,
   },
   inputContainer: {
-    marginTop: 30,
     borderColor: "black",
     borderWidth: 1,
     borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
   },
   input: {
-    marginVertical: 16,
-    marginHorizontal: 10,
-    fontSize: 20,
+    fontSize: 16,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
   },
 });

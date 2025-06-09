@@ -20,10 +20,7 @@ const PastEntry: FC<PastEntryProps> = ({ entries, onDelete, onEdit }) => {
             <View style={styles.entryWrapper}>
               <View style={styles.entryHeader}>
                 <Text style={styles.timestamp}>{localDateTime}</Text>
-                <EditActionSheet
-                  deleteEntry={() => onDelete(entry.id)}
-                  editEntry={() => onEdit(entry.id, entry.content)}
-                />
+                <EditActionSheet deleteEntry={() => onDelete(entry.id)} editEntry={() => onEdit(entry.id, entry.content)} />
               </View>
               <Text style={styles.entryContent}>{entry.content}</Text>
             </View>
@@ -44,8 +41,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   entryWrapper: {
-    marginVertical: 12,
-    marginHorizontal: 10,
+    margin: 10,
   },
   entryHeader: {
     flexDirection: "row",
@@ -57,6 +53,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   entryContent: {
-    fontSize: 18,
+    fontSize: 16,
+    marginTop: 2,
   },
 });
