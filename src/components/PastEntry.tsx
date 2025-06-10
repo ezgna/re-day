@@ -1,3 +1,4 @@
+import { formatToLocalDateTimeString } from "@/utils/date";
 import React, { FC } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Entry } from "../database/types";
@@ -13,13 +14,13 @@ const PastEntry: FC<PastEntryProps> = ({ entries, onDelete, onEdit }) => {
   return (
     <>
       {entries.map((entry) => {
-        const localDateTime = new Date(entry.created_at).toLocaleString();
+        const displayDate = formatToLocalDateTimeString(entry.created_at);
 
         return (
           <View style={styles.container} key={entry.id}>
             <View style={styles.entryWrapper}>
               <View style={styles.entryHeader}>
-                <Text style={styles.timestamp}>{localDateTime}</Text>
+                <Text style={styles.timestamp}>{displayDate}</Text>
                 <EditActionSheet deleteEntry={() => onDelete(entry.id)} editEntry={() => onEdit(entry.id, entry.content)} />
               </View>
               <Text style={styles.entryContent}>{entry.content}</Text>

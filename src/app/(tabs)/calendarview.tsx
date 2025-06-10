@@ -3,6 +3,7 @@ import PastEntry from "@/src/components/PastEntry";
 import SaveButton from "@/src/components/SaveButton";
 import { deleteEntry, fetchEntries, initDB, updateEntry } from "@/src/database/db";
 import { Entry } from "@/src/database/types";
+import { formatToLocalDateString } from "@/utils/date";
 import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Calendar } from "react-native-calendars";
@@ -29,7 +30,8 @@ const CalendarView = () => {
   }, []);
 
   useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
+    const now = new Date().toISOString();
+    const today = formatToLocalDateString(now);
     setSelected(today);
   }, []);
 
@@ -74,10 +76,10 @@ const CalendarView = () => {
     setEditingContent("");
   };
 
-  const filteredEntries = selected ? entries.filter((entry) => entry.created_at.slice(0, 10) === selected) : [];
+  const filteredEntries = selected ? entries.filter((entry) => formatToLocalDateString(entry.created_at) === selected) : [];
 
   const dotMarkedDates = entries.reduce((acc, entry) => {
-    const date = entry.created_at.slice(0, 10);
+    const date = formatToLocalDateString(entry.created_at);
     acc[date] = {
       marked: true,
       dotColor: date === selected ? "white" : "#00B0FF",
@@ -114,7 +116,7 @@ const CalendarView = () => {
             </View>
           </View>
         ) : null}
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        <ScrollView showsVerticalScrollIndicator={false}>
           <PastEntry entries={filteredEntries} onDelete={handleDelete} onEdit={handleEdit} />
         </ScrollView>
       </View>
@@ -138,7 +140,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 3,
-    marginBottom: 14
+    marginBottom: 14,
   },
   entryContainer: {
     flex: 1, // for scrollView
@@ -167,5 +169,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
+    marginTop: 4,
   },
 });

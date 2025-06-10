@@ -2,6 +2,7 @@ import * as SQLite from "expo-sqlite";
 import { Entry } from "./types";
 import { Alert } from "react-native";
 import i18n from "@/utils/i18n";
+import { formatToLocalDateString } from "@/utils/date";
 
 let db: SQLite.SQLiteDatabase | null = null;
 
@@ -27,33 +28,22 @@ export const initDB = async () => {
 
 export const insertEntry = async (content: string) => {
   if (!db) {
-    console.error("Database not initialized");
-    return;
+    throw new Error("Database not initialized");
   }
 
-  try {
-    if (!content.trim()) {
-      console.log("content_cannot_be_empty");
-      return;
-    }
+  // const tomorrow = new Date();
+  // tomorrow.setDate(tomorrow.getDate() + 1);
+  // const isoTomorrow = tomorrow.toISOString();
 
-    // const tomorrow = new Date();
-    // tomorrow.setDate(tomorrow.getDate() + 1);
-    // const isoTomorrow = tomorrow.toISOString();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isoYesterday = yesterday.toISOString();
 
-    // const yesterday = new Date();
-    // yesterday.setDate(yesterday.getDate() - 1);
-    // const isoYesterday = yesterday.toISOString();
+  // const testDate = new Date(2025, 3, 1); // 月は0始まり（5=6月）
+  // const isoTestDate = testDate.toISOString();
 
-    // const testDate = new Date(2025, 3, 1); // 月は0始まり（5=6月）
-    // const isoTestDate = testDate.toISOString();
-
-    const date = new Date().toISOString();
-    await db.runAsync(`INSERT INTO entries (created_at, content) VALUES (?, ?)`, date, content);
-    console.log("Entry inserted successfully");
-  } catch (error) {
-    console.error("Error in insertEntry:", error);
-  }
+  const date = new Date().toISOString();
+  await db.runAsync(`INSERT INTO entries (created_at, content) VALUES (?, ?)`, date, content);
 };
 
 export const fetchEntries = async () => {
@@ -67,7 +57,7 @@ export const fetchEntries = async () => {
 
 export const getRandomDateContents = (entries: Entry[]) => {
   const groupedByDate: { [date: string]: Entry[] } = entries.reduce((acc, entry) => {
-    const dateOnly = entry.created_at.slice(0, 10);
+    const dateOnly = formatToLocalDateString(entry.created_at);
     if (!acc[dateOnly]) acc[dateOnly] = [];
     acc[dateOnly].push(entry);
     return acc;
