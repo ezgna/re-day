@@ -1,4 +1,5 @@
 import i18n from "@/utils/i18n";
+import { theme } from "@/utils/theme";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { Entypo } from "@expo/vector-icons";
 import { FC } from "react";
@@ -42,7 +43,7 @@ export const EditActionSheet: FC<EditActionSheetProps> = ({ deleteEntry, editEnt
 
   return (
     <Pressable onPress={onPress}>
-      <Entypo name="dots-three-horizontal" size={12} color="#696880" />
+      <Entypo name="dots-three-horizontal" size={12} color={theme.colors.secondary} />
     </Pressable>
   );
 };

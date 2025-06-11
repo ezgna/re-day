@@ -1,3 +1,24 @@
+import { Entry } from "@/src/database/types";
+
+export const getRandomDateContents = (entries: Entry[]) => {
+  const groupedByDate: { [date: string]: Entry[] } = entries.reduce((acc, entry) => {
+    const dateOnly = formatToLocalDateString(entry.created_at);
+    if (!acc[dateOnly]) acc[dateOnly] = [];
+    acc[dateOnly].push(entry);
+    return acc;
+  }, {} as { [date: string]: Entry[] });
+
+  const dates = Object.keys(groupedByDate);
+
+  if (dates.length > 0) {
+    const randomDate = dates[Math.floor(Math.random() * dates.length)];
+    const contents = groupedByDate[randomDate].map((entry) => entry.content);
+    return { randomDate, contents };
+  } else {
+    return null;
+  }
+};
+
 export const formatToLocalDateString = (isoString: string) => {
   const date = new Date(isoString);
   const y = date.getFullYear();

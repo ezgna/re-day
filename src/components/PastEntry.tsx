@@ -3,6 +3,7 @@ import React, { FC } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Entry } from "../database/types";
 import { EditActionSheet } from "./EditActionSheet";
+import { theme } from "@/utils/theme";
 
 interface PastEntryProps {
   entries: Entry[];
@@ -36,10 +37,10 @@ export default PastEntry;
 
 const styles = StyleSheet.create({
   container: {
-    borderColor: "black",
-    borderWidth: 1,
-    borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.md,
+    marginBottom: theme.spacing.sm,
+    ...theme.shadows.light,
   },
   entryWrapper: {
     margin: 10,
@@ -48,13 +49,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginRight: 8,
+    marginRight: theme.spacing.sm,
   },
   timestamp: {
     fontSize: 12,
+    color: theme.colors.primary,
   },
   entryContent: {
     fontSize: 16,
-    marginTop: 2,
+    marginTop: theme.spacing.xs,
+    color: theme.colors.primary,
   },
 });

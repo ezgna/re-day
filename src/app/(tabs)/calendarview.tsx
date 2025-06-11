@@ -4,6 +4,9 @@ import SaveButton from "@/src/components/SaveButton";
 import { deleteEntry, fetchEntries, initDB, updateEntry } from "@/src/database/db";
 import { Entry } from "@/src/database/types";
 import { formatToLocalDateString } from "@/utils/date";
+import { theme } from "@/utils/theme";
+import { router } from "expo-router";
+import { useLocalSearchParams } from "expo-router/build/hooks";
 import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Calendar } from "react-native-calendars";
@@ -15,6 +18,9 @@ const CalendarView = () => {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingContent, setEditingContent] = useState("");
+  const params = useLocalSearchParams<{ pickedDate?: string }>();
+
+  // console.log(params)
 
   useEffect(() => {
     const initAndFetch = async () => {
@@ -30,9 +36,16 @@ const CalendarView = () => {
   }, []);
 
   useEffect(() => {
+    if (!params.pickedDate) return;
+    setSelected(params.pickedDate);
+  }, [params.pickedDate]);
+
+  useEffect(() => {
+    if (params.pickedDate) return;
     const now = new Date().toISOString();
     const today = formatToLocalDateString(now);
     setSelected(today);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDelete = async (id: number) => {
@@ -98,9 +111,15 @@ const CalendarView = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Calendar
+        key={selected} // pickedDateに合わせて月表示を変えるために必須
+        current={selected} // pickedDateに合わせて月表示を変えるために必須
         style={styles.calendar}
         onDayPress={(day) => {
           setSelected(day.dateString);
+          router.replace({ // paramsをリセットするにはこれをやるしかないようだ
+            pathname: "/calendarview",
+            params: {},
+          });
         }}
         markedDates={dotMarkedDates}
       />
@@ -128,47 +147,39 @@ export default CalendarView;
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 8,
-    paddingHorizontal: 16,
+    marginTop: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
     flex: 1, // for scrollView
+    backgroundColor: theme.colors.background,
   },
   calendar: {
-    borderRadius: 12,
-    padding: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 3,
-    marginBottom: 14,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.xs,
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.light,
   },
   entryContainer: {
     flex: 1, // for scrollView
   },
   editorCard: {
     backgroundColor: "#fff",
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-    marginBottom: 14,
+    borderRadius: theme.radius.md,
+    marginBottom: theme.spacing.sm,
+    ...theme.shadows.medium,
   },
   inputContainer: {
-    borderColor: "black",
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    borderRadius: theme.radius.md,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
   },
   input: {
     fontSize: 16,
+    color: theme.colors.secondary,
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
-    marginTop: 4,
+    marginTop: theme.spacing.xs,
   },
 });

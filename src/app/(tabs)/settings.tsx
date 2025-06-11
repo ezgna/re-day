@@ -1,26 +1,75 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import React from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { theme } from "@/utils/theme";
 import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import RNPickerSelect from "react-native-picker-select";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Settings = () => {
+  const [selectedLanguage, setSelectedLanguage] = useState<"English" | "Japanese">();
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.optionContainer}>
-        <Pressable style={styles.option}>
-          <Ionicons name="options-outline" size={24} color="black" />
-          <Text style={styles.optionText}>Customization</Text>
-        </Pressable>
-        
-        <Pressable style={styles.option}>
-          <Ionicons name="globe-outline" size={24} color="black" />
-          <Text style={styles.optionText}>Language</Text>
-        </Pressable>
+      <View style={{ flex: 1 }}>
+        <View style={styles.optionContainer}>
+          <Pressable style={styles.option}>
+            <Ionicons name="options-outline" size={24} style={styles.icon} />
+            <Text style={styles.optionText}>Customization</Text>
+          </Pressable>
 
-        <Pressable style={[styles.option, { borderBottomWidth: 0 }]}>
-          <Ionicons name="cloud-upload-outline" size={24} color="black" />
-          <Text style={styles.optionText}>Export/Import</Text>
-        </Pressable>
+          <Pressable style={[styles.option, { borderBottomWidth: 0 }]}>
+            <Ionicons name="cloud-upload-outline" size={24} style={styles.icon} />
+            <Text style={styles.optionText}>Export / Import</Text>
+          </Pressable>
+        </View>
+      </View>
+
+      <View style={{ flex: 1 }}>
+        <Text style={styles.label}>LANGUAGE</Text>
+
+        {/* this view is for android */}
+        <View style={{ elevation: 3, borderRadius: theme.radius.sm }}>
+          <RNPickerSelect
+            onValueChange={(value) => setSelectedLanguage(value)}
+            value={selectedLanguage}
+            placeholder={{}}
+            useNativeAndroidPickerStyle={false} // android
+            items={[
+              { label: "English", value: "English" },
+              { label: "Japanese", value: "Japanese" },
+            ]}
+            style={{
+              inputIOSContainer: {
+                pointerEvents: "none",
+                padding: theme.spacing.md,
+                backgroundColor: theme.colors.card,
+                borderRadius: theme.radius.sm,
+                flexDirection: "row",
+                alignItems: "center",
+                ...theme.shadows.light,
+              },
+              inputIOS: {
+                fontSize: 16,
+                color: theme.colors.secondary,
+              },
+              inputAndroidContainer: {
+                padding: theme.spacing.sm,
+                backgroundColor: theme.colors.card,
+                borderRadius: theme.radius.sm,
+                flexDirection: "row",
+                alignItems: "center",
+              },
+              inputAndroid: {
+                fontSize: 16,
+                color: theme.colors.secondary,
+              },
+              iconContainer: {
+                marginRight: theme.spacing.md,
+              },
+            }}
+            Icon={() => <Ionicons name="chevron-down" size={20} style={styles.icon} />}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -31,27 +80,36 @@ export default Settings;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.background,
   },
   optionContainer: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    paddingLeft: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.md,
+    paddingHorizontal: theme.spacing.md,
+    ...theme.shadows.medium,
   },
   option: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
-    borderBottomColor: "#ddd",
+    paddingVertical: theme.spacing.md,
+    borderBottomColor: theme.colors.border,
     borderBottomWidth: 1,
   },
+  icon: {
+    color: theme.colors.secondary,
+  },
   optionText: {
-    marginLeft: 10,
+    marginLeft: theme.spacing.md,
     fontSize: 16,
+    color: theme.colors.primary,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: theme.colors.placeholder,
+    letterSpacing: 0.5,
+    marginBottom: theme.spacing.xs,
+    marginLeft: theme.spacing.xs,
   },
 });
