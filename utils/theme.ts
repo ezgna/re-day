@@ -8,7 +8,7 @@ export const theme = {
     secondary: "#585B63", // primaryよりちょっと薄め
     border: "#C5CECD",
     placeholder: "#A0A0A0",
-    icon: "#888",
+    icon: '#888',
   },
   spacing: {
     xs: 4,

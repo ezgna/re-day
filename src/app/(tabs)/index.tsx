@@ -1,18 +1,18 @@
 import DiaryReflectionButton from "@/src/components/DiaryReflectionButton";
 import OpenCalendarButton from "@/src/components/OpenCalendarButton";
 import SaveButton from "@/src/components/SaveButton";
-import { fetchEntries, initDB, insertEntry } from "@/src/database/db";
+import { fetchEntries, insertEntry } from "@/src/database/db";
 import { Entry } from "@/src/database/types";
 import { summarizeContent } from "@/utils/api";
 import { formatDashedDateToSlashed, getRandomDateContents } from "@/utils/date";
 import i18n from "@/utils/i18n";
 import { theme } from "@/utils/theme";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import Toast from "react-native-root-toast";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const placeholders = ["placeholder1", "placeholder2", "placeholder3", "placeholder4", "placeholder5"];
 const STORAGE_KEY = "summary_cache";
@@ -31,16 +31,15 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    const initAndFetch = async () => {
+    const fetch = async () => {
       try {
-        await initDB();
         const data = await fetchEntries();
         setEntries(data);
       } catch (error) {
-        console.error("Error initializing database:", error);
+        console.error(error);
       }
     };
-    initAndFetch();
+    fetch();
   }, []);
 
   useEffect(() => {

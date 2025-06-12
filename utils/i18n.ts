@@ -14,6 +14,7 @@ const i18n = new I18n({
     placeholder4: "Write your thoughts here...",
     placeholder5: "Start your diary entry now...",
     openCalendar: 'Open Calendar',
+    alert_delete_message: "Are you sure you want to delete this?",
   },
   ja: {
     edit: "編集",
@@ -24,10 +25,11 @@ const i18n = new I18n({
     diaryReflectionButtonText: "あの日の自分を振り返る",
     placeholder1: "今、どんなことを考えていますか？",
     placeholder2: "思い出を書きとめよう",
-    placeholder3: "今日の出来事を残そう",
+    placeholder3: "今日の出来事を残してみよう",
     placeholder4: "今の気持ちを書いてみよう",
     placeholder5: "日記を書きはじめよう",
-    openCalendar: "カレンダーを開く"
+    openCalendar: "カレンダーを開く",
+    alert_delete_message: "本当に削除しますか？",
   },
 });
 

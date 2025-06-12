@@ -1,13 +1,13 @@
 import CancelButton from "@/src/components/CancelButton";
 import PastEntry from "@/src/components/PastEntry";
 import SaveButton from "@/src/components/SaveButton";
-import { deleteEntry, fetchEntries, initDB, updateEntry } from "@/src/database/db";
+import { deleteEntry, fetchEntries, updateEntry } from "@/src/database/db";
 import { Entry } from "@/src/database/types";
 import { formatToLocalDateString } from "@/utils/date";
 import { theme } from "@/utils/theme";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useLocalSearchParams } from "expo-router/build/hooks";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { MarkingProps } from "react-native-calendars/src/calendar/day/marking";
@@ -22,18 +22,20 @@ const CalendarView = () => {
 
   // console.log(params)
 
-  useEffect(() => {
-    const initAndFetch = async () => {
-      try {
-        await initDB();
-        const data = await fetchEntries();
-        setEntries(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    initAndFetch();
-  }, []);
+  const loadEntries = useCallback(async () => {
+    try {
+      const data = await fetchEntries();
+      setEntries(data);
+    } catch (error) {
+      console.error("loadEntries error:", error);
+    }
+  }, [setEntries]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadEntries();
+    }, [loadEntries])
+  );
 
   useEffect(() => {
     if (!params.pickedDate) return;
@@ -45,14 +47,12 @@ const CalendarView = () => {
     const now = new Date().toISOString();
     const today = formatToLocalDateString(now);
     setSelected(today);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDelete = async (id: number) => {
     try {
       await deleteEntry(id);
-      const data = await fetchEntries();
-      setEntries(data);
+      loadEntries();
     } catch (error) {
       console.error(error);
     }
@@ -77,8 +77,7 @@ const CalendarView = () => {
       await updateEntry(editingId, trimmedContent);
       setEditingId(null);
       setEditingContent("");
-      const data = await fetchEntries();
-      setEntries(data);
+      loadEntries();
     } catch (error) {
       console.error(error);
     }
@@ -116,7 +115,8 @@ const CalendarView = () => {
         style={styles.calendar}
         onDayPress={(day) => {
           setSelected(day.dateString);
-          router.replace({ // paramsをリセットするにはこれをやるしかないようだ
+          router.replace({
+            // paramsをリセットするにはこれをやるしかないようだ
             pathname: "/calendarview",
             params: {},
           });

@@ -1,0 +1,8 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "あのころ日記"
+  },
+  "android": {
+    "app_name": "あのころ日記"
+  }
+}

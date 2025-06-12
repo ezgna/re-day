@@ -1,67 +1,60 @@
-import * as SQLite from "expo-sqlite";
-import { Entry } from "./types";
-import { Alert } from "react-native";
 import i18n from "@/utils/i18n";
-import { formatToLocalDateString } from "@/utils/date";
+import * as SQLite from "expo-sqlite";
+import { Alert } from "react-native";
+import { Entry } from "./types";
 
 let db: SQLite.SQLiteDatabase | null = null;
 
 export const getDB = async () => {
-  if (!db) {
-    db = await SQLite.openDatabaseAsync("anokoro-diary.db");
+  if (db) {
+    return db;
   }
+
+  db = await SQLite.openDatabaseAsync("anokoro-diary.db");
+
+  await db.execAsync(`
+    PRAGMA journal_mode = WAL;
+    CREATE TABLE IF NOT EXISTS entries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      created_at TEXT NOT NULL,
+      content TEXT NOT NULL
+    );
+  `);
+
   return db;
 };
 
-export const initDB = async () => {
-  const db = await getDB();
-  await db.execAsync(`
-      PRAGMA journal_mode = WAL;
-      CREATE TABLE IF NOT EXISTS entries (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        created_at TEXT NOT NULL,
-        content TEXT NOT NULL
-      );
-    `);
-  // console.log("Database initialized successfully");
-};
-
 export const insertEntry = async (content: string) => {
-  if (!db) {
-    throw new Error("Database not initialized");
-  }
+  const conn = await getDB();
 
   // const tomorrow = new Date();
   // tomorrow.setDate(tomorrow.getDate() + 1);
   // const isoTomorrow = tomorrow.toISOString();
 
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const isoYesterday = yesterday.toISOString();
+  // const yesterday = new Date();
+  // yesterday.setDate(yesterday.getDate() - 1);
+  // const isoYesterday = yesterday.toISOString();
 
   // const testDate = new Date(2025, 3, 1); // 月は0始まり（5=6月）
   // const isoTestDate = testDate.toISOString();
 
   const date = new Date().toISOString();
-  await db.runAsync(`INSERT INTO entries (created_at, content) VALUES (?, ?)`, date, content);
+  await conn.runAsync(`INSERT INTO entries (created_at, content) VALUES (?, ?)`, date, content);
 };
 
 export const fetchEntries = async () => {
-  if (!db) {
-    throw new Error("Database not initialized");
-  }
-  const result = await db.getAllAsync<Entry>(`SELECT * FROM entries ORDER BY created_at DESC`);
+  const conn = await getDB();
+
+  const result = await conn.getAllAsync<Entry>(`SELECT * FROM entries ORDER BY created_at DESC`);
   // console.log("Entries fetched successfully", result);
   return result;
 };
 
 export const deleteEntry = async (id: number) => {
-  if (!db) {
-    throw new Error("Database not initialized");
-  }
+  const conn = await getDB();
 
   const confirmed = await new Promise((resolve) => {
-    Alert.alert(i18n.t("confirm_deletion"), i18n.t("delete_entry_message"), [
+    Alert.alert(i18n.t("alert_delete_message"), undefined, [
       {
         text: i18n.t("cancel"),
         style: "cancel",
@@ -75,12 +68,11 @@ export const deleteEntry = async (id: number) => {
     ]);
   });
   if (!confirmed) return;
-  await db.runAsync("DELETE FROM entries WHERE id = ?", [id]);
+  await conn.runAsync("DELETE FROM entries WHERE id = ?", [id]);
 };
 
 export const updateEntry = async (id: number, content: string) => {
-  if (!db) {
-    throw new Error("Database not initialized");
-  }
-  await db.runAsync(`UPDATE entries SET content = ? WHERE id = ?`, [content, id]);
+  const conn = await getDB();
+
+  await conn.runAsync(`UPDATE entries SET content = ? WHERE id = ?`, [content, id]);
 };
