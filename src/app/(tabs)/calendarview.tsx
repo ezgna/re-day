@@ -47,6 +47,7 @@ const CalendarView = () => {
     const now = new Date().toISOString();
     const today = formatToLocalDateString(now);
     setSelected(today);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDelete = async (id: number) => {
@@ -115,8 +116,7 @@ const CalendarView = () => {
         style={styles.calendar}
         onDayPress={(day) => {
           setSelected(day.dateString);
-          router.replace({
-            // paramsをリセットするにはこれをやるしかないようだ
+          router.replace({ // paramsをリセットするにはこれをやるしかないようだ
             pathname: "/calendarview",
             params: {},
           });

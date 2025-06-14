@@ -1,18 +1,45 @@
+import i18n from "@/utils/i18n";
 import { theme } from "@/utils/theme";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Settings = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<"English" | "Japanese">();
 
+  const openPrivacyPolicy = () => {
+    Alert.alert(i18n.t("external_link"), i18n.t("external_link_message"), [
+      {
+        text: i18n.t("cancel"),
+        style: "cancel",
+      },
+      {
+        text: i18n.t("continue"),
+        onPress: async () => await Linking.openURL("https://www.ezgna.com/privacypolicy"),
+      },
+    ]);
+  };
+
+  const openTermsOfUse = () => {
+    Alert.alert(i18n.t("external_link"), i18n.t("external_link_message"), [
+      {
+        text: i18n.t("cancel"),
+        style: "cancel",
+      },
+      {
+        text: i18n.t("continue"),
+        onPress: async () => await Linking.openURL("https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"),
+      },
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={{ flex: 1 }}>
         <View style={styles.optionContainer}>
-          <Pressable style={styles.option}>
+          {/* <Pressable style={styles.option}>
             <Ionicons name="options-outline" size={24} style={styles.icon} />
             <Text style={styles.optionText}>Customization</Text>
           </Pressable>
@@ -20,15 +47,25 @@ const Settings = () => {
           <Pressable style={[styles.option, { borderBottomWidth: 0 }]}>
             <Ionicons name="cloud-upload-outline" size={24} style={styles.icon} />
             <Text style={styles.optionText}>Export / Import</Text>
+          </Pressable> */}
+
+          <Pressable onPress={openPrivacyPolicy} style={styles.option}>
+            <Feather name="external-link" size={24} style={styles.icon} />
+            <Text style={styles.optionText}>{i18n.t("privacy_policy")}</Text>
+          </Pressable>
+
+          <Pressable onPress={openTermsOfUse} style={[styles.option, { borderBottomWidth: 0 }]}>
+            <Feather name="external-link" size={24} style={styles.icon} />
+            <Text style={styles.optionText}>{i18n.t("terms_of_use")}</Text>
           </Pressable>
         </View>
       </View>
 
-      <View style={{ flex: 1 }}>
-        <Text style={styles.label}>LANGUAGE</Text>
+      {/* <View style={{ flex: 1 }}>
+        <Text style={styles.label}>LANGUAGE</Text> */}
 
         {/* this view is for android */}
-        <View style={{ elevation: 3, borderRadius: theme.radius.sm }}>
+        {/* <View style={{ elevation: 3, borderRadius: theme.radius.sm }}>
           <RNPickerSelect
             onValueChange={(value) => setSelectedLanguage(value)}
             value={selectedLanguage}
@@ -69,8 +106,8 @@ const Settings = () => {
             }}
             Icon={() => <Ionicons name="chevron-down" size={20} style={styles.icon} />}
           />
-        </View>
-      </View>
+        </View> */}
+      {/* </View> */}
     </SafeAreaView>
   );
 };
@@ -102,7 +139,7 @@ const styles = StyleSheet.create({
   optionText: {
     marginLeft: theme.spacing.md,
     fontSize: 16,
-    color: theme.colors.primary,
+    color: theme.colors.secondary,
   },
   label: {
     fontSize: 12,
