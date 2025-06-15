@@ -35,7 +35,7 @@ export const insertEntry = async (content: string) => {
   // yesterday.setDate(yesterday.getDate() - 1);
   // const isoYesterday = yesterday.toISOString();
 
-  // const testDate = new Date(2025, 4, 30); // 月は0始まり（5=6月）
+  // const testDate = new Date(2025, 5, 1); // 月は0始まり（5=6月）
   // const isoTestDate = testDate.toISOString();
 
   const date = new Date().toISOString();

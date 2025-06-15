@@ -1,3 +1,4 @@
+import i18n from "@/utils/i18n";
 import { theme } from "@/utils/theme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -15,39 +16,36 @@ export default function FeatureCarousel() {
           <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.iconBg}>
             <MaterialCommunityIcons name="pencil" style={styles.icon} />
           </LinearGradient>
-          <Text style={styles.title}>まずは一言書いてみよう！</Text>
-          <Text style={styles.desc}>
-            今日の出来事でも、今ふと思いついたことでも、{"\n"}単なるメモでもOK。{"\n"}
-            {"\n"}
-            保存した記録はカレンダーからいつでも見られます。
-          </Text>
+          <Text style={styles.title}>{i18n.t("onboarding.step1.title")}</Text>
+          {(i18n.t("onboarding.step1.description", { returnObjects: true }) as string[]).map((line, index) => (
+            <Text key={`step1-${index}`} style={styles.desc}>
+              {line === "" ? " " : line}
+            </Text>
+          ))}
         </View>
 
         <View style={styles.page} key="2">
           <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.iconBg}>
             <MaterialCommunityIcons name="book-open-page-variant" style={styles.icon} />
           </LinearGradient>
-          <Text style={styles.title}>過去の思い出をワンタップで</Text>
-          <Text style={styles.desc}>
-            日記はつけているけど、振り返るのは面倒...。{"\n"}
-            結局あまり見返さないんだよね...。{"\n"}
-            {"\n"}
-            そんな時のための、『振り返る』ボタン。{"\n"}
-            試しに、一度押してみましょう！
-          </Text>
+          <Text style={styles.title}>{i18n.t("onboarding.step2.title")}</Text>
+          {(i18n.t("onboarding.step2.description", { returnObjects: true }) as string[]).map((line, index) => (
+            <Text key={`step2-${index}`} style={styles.desc}>
+              {line === "" ? " " : line}
+            </Text>
+          ))}
         </View>
 
         <View style={styles.page} key="3">
           <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.iconBg}>
             <MaterialCommunityIcons name="robot-happy" style={styles.icon} />
           </LinearGradient>
-          <Text style={styles.title}>AIおすすめの1日をピックアップ</Text>
-          <Text style={styles.desc}>
-            その日に書いた日記をAIが自動解析！{"\n"}
-            {"\n"}
-            忘れかけていた記憶を新たな視点から振り返ってみると{"\n"}
-            思いがけない気づきや発見があるかも。{"\n"}
-          </Text>
+          <Text style={styles.title}>{i18n.t("onboarding.step3.title")}</Text>
+          {(i18n.t("onboarding.step3.description", { returnObjects: true }) as string[]).map((line, index) => (
+            <Text key={`step3-${index}`} style={styles.desc}>
+              {line === "" ? " " : line}
+            </Text>
+          ))}
         </View>
       </PagerView>
       <View style={styles.dotsContainer}>
@@ -80,7 +78,7 @@ const styles = StyleSheet.create({
   icon: {
     color: "#fff",
     fontSize: 40,
-    marginBottom: 2
+    marginBottom: 3,
   },
   title: {
     fontSize: 18,

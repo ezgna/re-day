@@ -3,7 +3,6 @@ export const summarizeContent = async (date: string, contents: string[], languag
     method: "POST",
     body: JSON.stringify({ contents, date, language }),
   });
-  const { summary } = await response.json();
-  console.log(summary)
-  return summary;
+  const { title, summary } = await response.json();
+  return { title, summary };
 };

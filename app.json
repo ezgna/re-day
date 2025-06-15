@@ -24,7 +24,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": ".src/assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png"
     },
     "locales": {
       "ja": "./languages/japanese.json"
