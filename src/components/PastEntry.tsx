@@ -1,6 +1,6 @@
 import { formatToLocalDateTimeString } from "@/utils/date";
 import React, { FC } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import { Entry } from "../database/types";
 import { EditActionSheet } from "./EditActionSheet";
 import { theme } from "@/utils/theme";
@@ -24,7 +24,7 @@ const PastEntry: FC<PastEntryProps> = ({ entries, onDelete, onEdit }) => {
                 <Text style={styles.timestamp}>{displayDate}</Text>
                 <EditActionSheet deleteEntry={() => onDelete(entry.id)} editEntry={() => onEdit(entry.id, entry.content)} />
               </View>
-              <Text style={styles.entryContent}>{entry.content}</Text>
+              <TextInput value={entry.content} editable={false} multiline style={styles.entryContent} selectionColor={theme.colors.selection} />
             </View>
           </View>
         );
@@ -59,5 +59,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: theme.spacing.xs,
     color: theme.colors.primary,
+    padding: 0,
   },
 });

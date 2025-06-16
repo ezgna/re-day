@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.98 }],
   },
   gradient: {
-    paddingVertical: 14,
+    // paddingVertical: 14,
     borderRadius: theme.radius.md,
     alignItems: "center",
     justifyContent: "center",

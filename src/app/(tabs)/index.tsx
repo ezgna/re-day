@@ -12,7 +12,7 @@ import { theme } from "@/utils/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Keyboard, KeyboardAvoidingView, LayoutAnimation, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import FlipCard from "react-native-flip-card";
 import Toast from "react-native-root-toast";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -32,7 +32,26 @@ const Index = () => {
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [cooldownTime, setCooldownTime] = useState(COOLDOWN_SEC);
   const [flipped, setFlipped] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const placeholders = i18n.t("placeholders", { returnObjects: true }) as string[];
+
+  const handleKeyboardVisible = (visible: boolean) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setKeyboardVisible(visible);
+  };
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener("keyboardWillShow", () => {
+      handleKeyboardVisible(true);
+    });
+    const hideSub = Keyboard.addListener("keyboardWillHide", () => {
+      handleKeyboardVisible(false);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   useEffect(() => {
     setFlipped(!!responseData);
@@ -71,7 +90,7 @@ const Index = () => {
   useEffect(() => {
     (async () => {
       await loadCache();
-      await AsyncStorage.removeItem(STORAGE_KEY); // debug
+      // await AsyncStorage.removeItem(STORAGE_KEY); // debug
       // await AsyncStorage.removeItem(DEADLINE_KEY); // debug
     })();
   }, []);
@@ -164,62 +183,85 @@ const Index = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={{ flex: 2 }}>
-        <FlipCard flip={flipped} style={styles.card} friction={30} perspective={1000} flipHorizontal={true} flipVertical={false} clickable={false}>
-          <View style={styles.face}>
-            <FlipPressable
-              onPress={() => setFlipped(!flipped)}
-              style={{
-                alignSelf: "flex-end",
-                paddingRight: theme.spacing.sm,
-                paddingTop: theme.spacing.md,
-              }}
-            />
-            <FeatureCarousel />
-          </View>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <SafeAreaView style={styles.container}>
+        <View style={{ flex: 1.5 }}>
+          <FlipCard flip={flipped} style={styles.card} friction={30} perspective={1000} flipHorizontal={true} flipVertical={false} clickable={false}>
+            <View style={styles.face}>
+              <FlipPressable
+                onPress={() => setFlipped(!flipped)}
+                style={{
+                  alignSelf: "flex-end",
+                  paddingRight: theme.spacing.sm,
+                  paddingTop: theme.spacing.md,
+                }}
+              />
+              <FeatureCarousel />
+            </View>
 
-          <View style={styles.back}>
-            {responseData ? (
-              <>
-                <View style={styles.cardHeader}>
-                  <Text style={styles.cardTitle}>{responseData.title}</Text>
-                  <FlipPressable onPress={() => setFlipped(!flipped)} />
-                </View>
-                <ScrollView showsVerticalScrollIndicator={false}>
-                  <Text style={styles.cardText}>{responseData.summary}</Text>
-                  <View style={styles.buttonContainer}>
-                    <OpenCalendarButton onPress={openCalendar} />
+            <View style={styles.back}>
+              {responseData ? (
+                <>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle} selectable>
+                      {responseData.title}
+                    </Text>
+                    <FlipPressable onPress={() => setFlipped(!flipped)} />
                   </View>
-                </ScrollView>
-              </>
-            ) : (
-              <>
-                <View style={styles.cardHeader}>
-                  <Text style={{ fontSize: 20, fontWeight: 600 }}>{i18n.t("sample_response")}</Text>
-                  <FlipPressable onPress={() => setFlipped(!flipped)} />
-                </View>
-                <Text style={[styles.cardTitle, { marginBottom: theme.spacing.md }]}>{i18n.t("reflection.title")}</Text>
-                {(i18n.t("reflection.overview", { returnObjects: true }) as string[]).map((line, index) => (
-                  <Text key={index} style={styles.cardText}>
-                    {line === "" ? " " : line}
-                  </Text>
-                ))}
-              </>
-            )}
-          </View>
-        </FlipCard>
-      </View>
-      <View style={{ flex: 1, justifyContent: "space-between" }}>
-        <View style={styles.inputContainer}>
-          <TextInput style={styles.input} placeholder={placeholder} placeholderTextColor={theme.colors.placeholder} value={content} onChangeText={setContent} multiline />
-          <View style={styles.buttonContainer}>
-            <SaveButton onPress={() => handleInsert(content)} />
-          </View>
+                  <ScrollView showsVerticalScrollIndicator={false}>
+                    <TextInput value={responseData.summary} editable={false} multiline style={styles.cardText} selectionColor={theme.colors.selection} />
+                    <View style={styles.buttonContainer}>
+                      <OpenCalendarButton onPress={openCalendar} />
+                    </View>
+                  </ScrollView>
+                </>
+              ) : (
+                <>
+                  <View style={styles.cardHeader}>
+                    <Text style={{ fontSize: 20, fontWeight: 600 }}>{i18n.t("sample_response")}</Text>
+                    <FlipPressable onPress={() => setFlipped(!flipped)} />
+                  </View>
+                  <ScrollView showsVerticalScrollIndicator={false}>
+                    <Text style={[styles.cardTitle, { marginBottom: theme.spacing.md }]}>{i18n.t("reflection.title")}</Text>
+                    {(i18n.t("reflection.overview", { returnObjects: true }) as string[]).map((line, index) => (
+                      <Text key={index} style={styles.cardText}>
+                        {line === "" ? " " : line}
+                      </Text>
+                    ))}
+                  </ScrollView>
+                </>
+              )}
+            </View>
+          </FlipCard>
         </View>
-        <DiaryReflectionButton onPress={handleGenerateReflection} loading={loading} cooldownTime={cooldownTime} isCountingDown={isCountingDown} onFinish={handleCountDownFinish} />
-      </View>
-    </SafeAreaView>
+        <View style={{ flex: 1, justifyContent: "space-between" }}>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder={placeholder}
+              placeholderTextColor={theme.colors.placeholder}
+              value={content}
+              onChangeText={setContent}
+              multiline
+              onBlur={() => Keyboard.dismiss()}
+            />
+            <View style={styles.buttonContainer}>
+              <SaveButton onPress={() => handleInsert(content)} />
+            </View>
+          </View>
+          <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss} />
+          {!keyboardVisible && (
+            <DiaryReflectionButton
+              onPress={handleGenerateReflection}
+              loading={loading}
+              cooldownTime={cooldownTime}
+              isCountingDown={isCountingDown}
+              onFinish={handleCountDownFinish}
+            />
+          )}
+        </View>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -261,6 +303,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: theme.colors.primary,
     lineHeight: 24,
+    padding: 0,
   },
   inputContainer: {
     paddingVertical: theme.spacing.sm,

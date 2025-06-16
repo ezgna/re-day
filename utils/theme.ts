@@ -9,6 +9,7 @@ export const theme = {
     border: "#C5CECD",
     placeholder: "#A0A0A0",
     icon: '#888',
+    selection: "#007AFF"
   },
   spacing: {
     xs: 4,

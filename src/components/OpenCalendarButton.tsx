@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.82,
-    transform: [{ scale: 0.97 }],
+    // transform: [{ scale: 0.97 }],
   },
   text: {
     fontSize: 14,

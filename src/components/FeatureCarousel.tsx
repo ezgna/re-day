@@ -3,66 +3,70 @@ import { theme } from "@/utils/theme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import PagerView from "react-native-pager-view";
 
 export default function FeatureCarousel() {
   const [page, setPage] = useState(0);
 
   return (
-    <View style={styles.container}>
+    <>
       <PagerView style={styles.container} initialPage={0} onPageSelected={(e) => setPage(e.nativeEvent.position)}>
-        <View style={styles.page} key="1">
-          <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.iconBg}>
-            <MaterialCommunityIcons name="pencil" style={styles.icon} />
-          </LinearGradient>
-          <Text style={styles.title}>{i18n.t("onboarding.step1.title")}</Text>
-          {(i18n.t("onboarding.step1.description", { returnObjects: true }) as string[]).map((line, index) => (
-            <Text key={`step1-${index}`} style={styles.desc}>
-              {line === "" ? " " : line}
-            </Text>
-          ))}
-        </View>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <View style={styles.page} key="1">
+            <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.iconBg}>
+              <MaterialCommunityIcons name="pencil" style={styles.icon} />
+            </LinearGradient>
+            <Text style={styles.title}>{i18n.t("onboarding.step1.title")}</Text>
+            {(i18n.t("onboarding.step1.description", { returnObjects: true }) as string[]).map((line, index) => (
+              <Text key={`step1-${index}`} style={styles.desc}>
+                {line === "" ? " " : line}
+              </Text>
+            ))}
+          </View>
+        </ScrollView>
 
-        <View style={styles.page} key="2">
-          <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.iconBg}>
-            <MaterialCommunityIcons name="book-open-page-variant" style={styles.icon} />
-          </LinearGradient>
-          <Text style={styles.title}>{i18n.t("onboarding.step2.title")}</Text>
-          {(i18n.t("onboarding.step2.description", { returnObjects: true }) as string[]).map((line, index) => (
-            <Text key={`step2-${index}`} style={styles.desc}>
-              {line === "" ? " " : line}
-            </Text>
-          ))}
-        </View>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <View style={styles.page} key="2">
+            <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.iconBg}>
+              <MaterialCommunityIcons name="book-open-page-variant" style={styles.icon} />
+            </LinearGradient>
+            <Text style={styles.title}>{i18n.t("onboarding.step2.title")}</Text>
+            {(i18n.t("onboarding.step2.description", { returnObjects: true }) as string[]).map((line, index) => (
+              <Text key={`step2-${index}`} style={styles.desc}>
+                {line === "" ? " " : line}
+              </Text>
+            ))}
+          </View>
+        </ScrollView>
 
-        <View style={styles.page} key="3">
-          <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.iconBg}>
-            <MaterialCommunityIcons name="robot-happy" style={styles.icon} />
-          </LinearGradient>
-          <Text style={styles.title}>{i18n.t("onboarding.step3.title")}</Text>
-          {(i18n.t("onboarding.step3.description", { returnObjects: true }) as string[]).map((line, index) => (
-            <Text key={`step3-${index}`} style={styles.desc}>
-              {line === "" ? " " : line}
-            </Text>
-          ))}
-        </View>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <View style={styles.page} key="3">
+            <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.iconBg}>
+              <MaterialCommunityIcons name="robot-happy" style={styles.icon} />
+            </LinearGradient>
+            <Text style={styles.title}>{i18n.t("onboarding.step3.title")}</Text>
+            {(i18n.t("onboarding.step3.description", { returnObjects: true }) as string[]).map((line, index) => (
+              <Text key={`step3-${index}`} style={styles.desc}>
+                {line === "" ? " " : line}
+              </Text>
+            ))}
+          </View>
+        </ScrollView>
       </PagerView>
       <View style={styles.dotsContainer}>
         {[0, 1, 2].map((i) => (
           <View key={i} style={[styles.dot, i === page && styles.activeDot]} />
         ))}
       </View>
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: theme.spacing.sm,
-    // marginBottom: theme.spacing.md,
-    // marginHorizontal: theme.spacing.sm,
+    marginVertical: theme.spacing.md,
   },
   page: {
     alignItems: "center",

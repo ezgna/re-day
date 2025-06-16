@@ -8,7 +8,7 @@ import { theme } from "@/utils/theme";
 import { router, useFocusEffect } from "expo-router";
 import { useLocalSearchParams } from "expo-router/build/hooks";
 import React, { useCallback, useEffect, useState } from "react";
-import { ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Keyboard, ScrollView, StyleSheet, TextInput, TouchableWithoutFeedback, View } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { MarkingProps } from "react-native-calendars/src/calendar/day/marking";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -47,7 +47,7 @@ const CalendarView = () => {
     const now = new Date().toISOString();
     const today = formatToLocalDateString(now);
     setSelected(today);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDelete = async (id: number) => {
@@ -116,7 +116,8 @@ const CalendarView = () => {
         style={styles.calendar}
         onDayPress={(day) => {
           setSelected(day.dateString);
-          router.replace({ // paramsをリセットするにはこれをやるしかないようだ
+          router.replace({
+            // paramsをリセットするにはこれをやるしかないようだ
             pathname: "/calendarview",
             params: {},
           });
@@ -127,7 +128,7 @@ const CalendarView = () => {
         {editingId ? (
           <View style={styles.editorCard}>
             <View style={styles.inputContainer}>
-              <TextInput style={styles.input} value={editingContent} onChangeText={setEditingContent} multiline />
+              <TextInput style={styles.input} value={editingContent} onChangeText={setEditingContent} multiline onBlur={() => Keyboard.dismiss()} />
               <View style={styles.buttonContainer}>
                 <CancelButton onPress={handleCancel} />
                 <SaveButton onPress={handleUpdate} />
@@ -175,6 +176,7 @@ const styles = StyleSheet.create({
   input: {
     fontSize: 16,
     color: theme.colors.secondary,
+    maxHeight: 60,
   },
   buttonContainer: {
     flexDirection: "row",

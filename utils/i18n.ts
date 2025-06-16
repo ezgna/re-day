@@ -17,7 +17,7 @@ const i18n = new I18n({
     continue: "Continue",
     sample_response: "Sample Response",
     noRecords: "No records yet.",
-    saveSuccess: "Saved successfully",
+    save_success: "Saved successfully",
     placeholders: ["What’s on your mind now?", "Jot down your memories…", "Capture your day’s moments…", "Write your thoughts here…", "Start your diary entry now…"],
     onboarding: {
       step1: {
