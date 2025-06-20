@@ -1,18 +1,19 @@
 {
   "expo": {
-    "name": "anokoro-diary",
-    "slug": "anokoro-diary",
+    "name": "Re:Day",
+    "slug": "re-day",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "anokorodiary",
+    "scheme": "reday",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
         "CFBundleAllowMixedLocalizations": true
-      }
+      },
+      "bundleIdentifier": "com.ezgna.re-day"
     },
     "android": {
       "adaptiveIcon": {
@@ -34,14 +35,14 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#4B367C",
+          "image": "./assets/images/icon.png",
+          "resizeMode": "contain"
         }
       ],
       "expo-sqlite",
-      "expo-localization"
+      "expo-localization",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

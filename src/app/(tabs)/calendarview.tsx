@@ -8,7 +8,7 @@ import { theme } from "@/utils/theme";
 import { router, useFocusEffect } from "expo-router";
 import { useLocalSearchParams } from "expo-router/build/hooks";
 import React, { useCallback, useEffect, useState } from "react";
-import { Keyboard, ScrollView, StyleSheet, TextInput, TouchableWithoutFeedback, View } from "react-native";
+import { Keyboard, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { MarkingProps } from "react-native-calendars/src/calendar/day/marking";
 import { SafeAreaView } from "react-native-safe-area-context";

@@ -62,16 +62,23 @@ const Index = () => {
     setPlaceholder(placeholders[randomIndex]);
   }, [placeholders]);
 
+  const loadEntries = async () => {
+    try {
+      const data = await fetchEntries();
+      setEntries(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
-    const fetch = async () => {
+    (async () => {
       try {
-        const data = await fetchEntries();
-        setEntries(data);
-      } catch (error) {
-        console.error(error);
+        await loadEntries();
+      } catch (e) {
+        console.error(e);
       }
-    };
-    fetch();
+    })();
   }, []);
 
   const loadCache = async () => {
@@ -113,6 +120,7 @@ const Index = () => {
     try {
       await insertEntry(content);
       setContent("");
+      await loadEntries();
       Toast.show(i18n.t("save_success"), {
         position: Toast.positions.CENTER,
       });
