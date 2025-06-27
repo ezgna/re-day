@@ -3,7 +3,7 @@ import { theme } from "@/utils/theme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import PagerView from "react-native-pager-view";
 
 export default function FeatureCarousel() {
@@ -91,7 +91,10 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.lg,
   },
   desc: {
-    fontSize: 14,
+    fontSize: Platform.select({
+      ios: 14,
+      android: 13,
+    }),
     fontWeight: "400",
     color: theme.colors.secondary,
     textAlign: "center",

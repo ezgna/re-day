@@ -27,19 +27,17 @@ export const getDB = async () => {
 export const insertEntry = async (content: string) => {
   const conn = await getDB();
 
-  // const tomorrow = new Date();
-  // tomorrow.setDate(tomorrow.getDate() + 1);
-  // const isoTomorrow = tomorrow.toISOString();
-
   // const yesterday = new Date();
   // yesterday.setDate(yesterday.getDate() - 1);
   // const isoYesterday = yesterday.toISOString();
 
-  // const testDate = new Date(2025, 5, 1); // 月は0始まり（5=6月）
+  // const testDate = new Date(2025, 5, 17); // 月は0始まり（5=6月）
   // const isoTestDate = testDate.toISOString();
 
+  // await conn.runAsync(`INSERT INTO entries (created_at, content) VALUES (?, ?)`, isoTestDate, content);
+  
   const date = new Date().toISOString();
-  await conn.runAsync(`INSERT INTO entries (created_at, content) VALUES (?, ?)`, date, content);
+  await conn.runAsync(`INSERT INTO entries (created_at, content) VALUES (?, ?)`, date, content); //debug
 };
 
 export const fetchEntries = async () => {

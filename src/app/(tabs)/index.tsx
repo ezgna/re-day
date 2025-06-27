@@ -12,7 +12,7 @@ import { theme } from "@/utils/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Keyboard, KeyboardAvoidingView, LayoutAnimation, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import FlipCard from "react-native-flip-card";
 import Toast from "react-native-root-toast";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -36,17 +36,21 @@ const Index = () => {
   const placeholders = i18n.t("placeholders", { returnObjects: true }) as string[];
 
   const handleKeyboardVisible = (visible: boolean) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setKeyboardVisible(visible);
   };
 
   useEffect(() => {
-    const showSub = Keyboard.addListener("keyboardWillShow", () => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, () => {
       handleKeyboardVisible(true);
     });
-    const hideSub = Keyboard.addListener("keyboardWillHide", () => {
+    const hideSub = Keyboard.addListener(hideEvent, () => {
       handleKeyboardVisible(false);
     });
+
     return () => {
       showSub.remove();
       hideSub.remove();
@@ -287,7 +291,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     paddingBottom: theme.spacing.md,
     marginBottom: theme.spacing.lg,
-    ...theme.shadows.light,
+    ...theme.shadows.iosOnlyLight,
   },
   face: {
     flex: 1,

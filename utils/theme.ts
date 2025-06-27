@@ -8,8 +8,8 @@ export const theme = {
     secondary: "#585B63", // primaryよりちょっと薄め
     border: "#C5CECD",
     placeholder: "#A0A0A0",
-    icon: '#888',
-    selection: "#007AFF"
+    icon: "#888",
+    selection: "#007AFF",
   },
   spacing: {
     xs: 4,
@@ -22,6 +22,17 @@ export const theme = {
     md: 12,
   },
   shadows: {
+    iosOnlyLight: Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 0,
+      },
+    }),
     light: Platform.select({
       ios: {
         shadowColor: "#000",
