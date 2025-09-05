@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { Alert, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { BookCheck, ShieldCheck } from "lucide-react-native";
 
 const Settings = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<"English" | "Japanese">();
@@ -50,12 +51,13 @@ const Settings = () => {
           </Pressable> */}
 
           <Pressable onPress={openPrivacyPolicy} style={styles.option}>
-            <Feather name="external-link" size={24} style={styles.icon} />
+            {/* <Feather name="external-link" size={24} style={styles.icon} /> */}
+            <ShieldCheck size={28} color="dimgray" />
             <Text style={styles.optionText}>{i18n.t("privacy_policy")}</Text>
           </Pressable>
 
           <Pressable onPress={openTermsOfUse} style={[styles.option, { borderBottomWidth: 0 }]}>
-            <Feather name="external-link" size={24} style={styles.icon} />
+            <BookCheck size={28} color="dimgray" />
             <Text style={styles.optionText}>{i18n.t("terms_of_use")}</Text>
           </Pressable>
         </View>
@@ -64,8 +66,8 @@ const Settings = () => {
       {/* <View style={{ flex: 1 }}>
         <Text style={styles.label}>LANGUAGE</Text> */}
 
-        {/* this view is for android */}
-        {/* <View style={{ elevation: 3, borderRadius: theme.radius.sm }}>
+      {/* this view is for android */}
+      {/* <View style={{ elevation: 3, borderRadius: theme.radius.sm }}>
           <RNPickerSelect
             onValueChange={(value) => setSelectedLanguage(value)}
             value={selectedLanguage}
@@ -139,6 +141,7 @@ const styles = StyleSheet.create({
   optionText: {
     marginLeft: theme.spacing.md,
     fontSize: 16,
+    fontWeight: "800",
     color: theme.colors.secondary,
   },
   label: {

@@ -1,5 +1,6 @@
 import DiaryReflectionButton from "@/src/components/DiaryReflectionButton";
 import FeatureCarousel from "@/src/components/FeatureCarousel";
+import FlipCard from "@/src/components/FlipCardReanimated";
 import FlipPressable from "@/src/components/FlipPressable";
 import OpenCalendarButton from "@/src/components/OpenCalendarButton";
 import SaveButton from "@/src/components/SaveButton";
@@ -12,17 +13,23 @@ import { theme } from "@/utils/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import FlipCard from "react-native-flip-card";
+import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import Reanimated, { Extrapolation, interpolate, useAnimatedKeyboard, useAnimatedStyle } from "react-native-reanimated";
 import Toast from "react-native-root-toast";
 import { SafeAreaView } from "react-native-safe-area-context";
+// ★ 追加：Zustand ストア
+import { useDraftStore } from "@/src/stores/useDraftStore";
 
 const STORAGE_KEY = "summary_cache";
 const DEADLINE_KEY = "reflectionCooldownDeadline";
-const COOLDOWN_SEC = 5 * 60;
+const COOLDOWN_SEC = 60;
 
 const Index = () => {
-  const [content, setContent] = useState("");
+  // ★ ここが変更：入力テキストは Zustand から
+  const content = useDraftStore((s) => s.content);
+  const setContent = useDraftStore((s) => s.setContent);
+  const clearDraft = useDraftStore((s) => s.clear);
+
   const [entries, setEntries] = useState<Entry[]>([]);
   const [responseData, setResponseData] = useState<{ title: string; summary: string } | null>(null);
   const [randomDateContents, setRandomDateContents] = useState<{ randomDate: string; contents: string[] } | null>(null);
@@ -32,39 +39,32 @@ const Index = () => {
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [cooldownTime, setCooldownTime] = useState(COOLDOWN_SEC);
   const [flipped, setFlipped] = useState(false);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
-  const placeholders = i18n.t("placeholders", { returnObjects: true }) as string[];
 
-  const handleKeyboardVisible = (visible: boolean) => {
-    // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setKeyboardVisible(visible);
-  };
-
+  // placeholder はマウント時＋言語変化時のみ決定
   useEffect(() => {
-    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-
-    const showSub = Keyboard.addListener(showEvent, () => {
-      handleKeyboardVisible(true);
-    });
-    const hideSub = Keyboard.addListener(hideEvent, () => {
-      handleKeyboardVisible(false);
-    });
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
+    const arr = i18n.t("placeholders", { returnObjects: true }) as string[];
+    if (Array.isArray(arr) && arr.length > 0) {
+      const randomIndex = Math.floor(Math.random() * arr.length);
+      setPlaceholder(arr[randomIndex]);
+    }
   }, []);
+
+  // ===== キーボード連動アニメ（カード領域） =====
+  const keyboard = useAnimatedKeyboard();
+
+  const animatedCardSlotStyle = useAnimatedStyle(() => {
+    const f = interpolate(keyboard.height.value, [0, 280], [1.5, 0.7], Extrapolation.CLAMP);
+    return { flex: f };
+  });
+
+  const animatedCardStyle = useAnimatedStyle(() => {
+    const s = interpolate(keyboard.height.value, [0, 280], [1, 0.98], Extrapolation.CLAMP);
+    return { transform: [{ scale: s }] };
+  });
 
   useEffect(() => {
     setFlipped(!!responseData);
   }, [responseData]);
-
-  useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * placeholders.length);
-    setPlaceholder(placeholders[randomIndex]);
-  }, [placeholders]);
 
   const loadEntries = async () => {
     try {
@@ -101,8 +101,6 @@ const Index = () => {
   useEffect(() => {
     (async () => {
       await loadCache();
-      // await AsyncStorage.removeItem(STORAGE_KEY); // debug
-      // await AsyncStorage.removeItem(DEADLINE_KEY); // debug
     })();
   }, []);
 
@@ -111,33 +109,26 @@ const Index = () => {
     setRandomDateContents(result);
   }, [entries]);
 
-  // console.log(randomDateContents?.randomDate); // debug
-
-  const handleInsert = async (content: string) => {
-    if (!content.trim()) {
-      Toast.show(i18n.t("content_cannot_be_empty"), {
-        position: Toast.positions.CENTER,
-      });
+  const handleInsert = async (txt: string) => {
+    if (!txt.trim()) {
+      Toast.show(i18n.t("content_cannot_be_empty"), { position: Toast.positions.CENTER });
+      // ★ 書きかけは空文字にしておく（Zustand にも保存される）
       setContent("");
       return;
     }
     try {
-      await insertEntry(content);
-      setContent("");
+      await insertEntry(txt);
+      // ★ 保存成功後に draft クリア（永続化された草稿も空に）
+      clearDraft();
       await loadEntries();
-      Toast.show(i18n.t("save_success"), {
-        position: Toast.positions.CENTER,
-      });
+      Toast.show(i18n.t("save_success"), { position: Toast.positions.CENTER });
     } catch (error) {
       console.error(error);
     }
   };
 
   const openCalendar = () => {
-    router.replace({
-      pathname: "/calendarview",
-      params: { pickedDate: pickedDate },
-    });
+    router.replace({ pathname: "/calendarview", params: { pickedDate } });
   };
 
   const handleGenerateReflection = async () => {
@@ -146,25 +137,16 @@ const Index = () => {
       if (randomDateContents) {
         const slashedRandomDate = formatDashedDateToSlashed(randomDateContents.randomDate);
         const language = i18n.locale === "ja" ? "Japanese" : "English";
-
         const result = await summarizeContent(slashedRandomDate, randomDateContents.contents, language);
         setResponseData(result);
-
-        const cache = {
-          date: randomDateContents.randomDate,
-          title: result.title,
-          summary: result.summary,
-        };
+        const cache = { date: randomDateContents.randomDate, title: result.title, summary: result.summary };
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
         await loadCache();
-
         const deadline = Date.now() + COOLDOWN_SEC * 1000;
         await AsyncStorage.setItem(DEADLINE_KEY, String(deadline));
         setIsCountingDown(true);
       } else {
-        Toast.show(i18n.t("noRecords"), {
-          position: Toast.positions.CENTER,
-        });
+        Toast.show(i18n.t("noRecords"), { position: Toast.positions.CENTER });
       }
     } catch (error) {
       console.error("Error summarizing content:", error);
@@ -177,10 +159,8 @@ const Index = () => {
     (async () => {
       const raw = await AsyncStorage.getItem(DEADLINE_KEY);
       if (!raw) return;
-
       const deadline = Number(raw);
       const diff = Math.ceil((deadline - Date.now()) / 1000);
-
       if (diff > 0) {
         setCooldownTime(diff);
         setIsCountingDown(true);
@@ -190,90 +170,93 @@ const Index = () => {
     })();
   }, []);
 
-  const handleCountDownFinish = () => {
-    setIsCountingDown(false);
-  };
+  const handleCountDownFinish = () => setIsCountingDown(false);
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-      <SafeAreaView style={styles.container}>
-        <View style={{ flex: 1.5 }}>
-          <FlipCard flip={flipped} style={styles.card} friction={30} perspective={1000} flipHorizontal={true} flipVertical={false} clickable={false}>
-            <View style={styles.face}>
-              <FlipPressable
-                onPress={() => setFlipped(!flipped)}
-                style={{
-                  alignSelf: "flex-end",
-                  paddingRight: theme.spacing.sm,
-                  paddingTop: theme.spacing.md,
-                }}
-              />
-              <FeatureCarousel />
-            </View>
-
-            <View style={styles.back}>
-              {responseData ? (
-                <>
-                  <View style={styles.cardHeader}>
-                    <Text style={styles.cardTitle} selectable>
-                      {responseData.title}
-                    </Text>
-                    <FlipPressable onPress={() => setFlipped(!flipped)} />
-                  </View>
-                  <ScrollView showsVerticalScrollIndicator={false}>
-                    <TextInput value={responseData.summary} editable={false} multiline style={styles.cardText} selectionColor={theme.colors.selection} />
-                    <View style={styles.buttonContainer}>
-                      <OpenCalendarButton onPress={openCalendar} />
-                    </View>
-                  </ScrollView>
-                </>
-              ) : (
-                <>
-                  <View style={styles.cardHeader}>
-                    <Text style={{ fontSize: 20, fontWeight: 600 }}>{i18n.t("sample_response")}</Text>
-                    <FlipPressable onPress={() => setFlipped(!flipped)} />
-                  </View>
-                  <ScrollView showsVerticalScrollIndicator={false}>
-                    <Text style={[styles.cardTitle, { marginBottom: theme.spacing.md }]}>{i18n.t("reflection.title")}</Text>
-                    {(i18n.t("reflection.overview", { returnObjects: true }) as string[]).map((line, index) => (
-                      <Text key={index} style={styles.cardText}>
-                        {line === "" ? " " : line}
-                      </Text>
-                    ))}
-                  </ScrollView>
-                </>
-              )}
-            </View>
-          </FlipCard>
-        </View>
-        <View style={{ flex: 1, justifyContent: "space-between" }}>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder={placeholder}
-              placeholderTextColor={theme.colors.placeholder}
-              value={content}
-              onChangeText={setContent}
-              multiline
-              onBlur={() => Keyboard.dismiss()}
-            />
-            <View style={styles.buttonContainer}>
-              <SaveButton onPress={() => handleInsert(content)} />
+    <SafeAreaView style={styles.container}>
+      {/* 上段カード：← 親の shadow は外す */}
+      <Reanimated.View style={[animatedCardSlotStyle, animatedCardStyle]}>
+        <FlipCard
+          flip={flipped}
+          perspective={1000}
+          flipHorizontal
+          flipVertical={false}
+          style={styles.flipContainer} // ← ここに marginBottom など
+        >
+          {/* FRONT 面：影つきの箱ごと */}
+          <View style={styles.cardShadow}>
+            <View style={styles.cardClip}>
+              <View style={styles.face}>
+                <FlipPressable onPress={() => setFlipped(!flipped)} style={{ alignSelf: "flex-end", paddingRight: theme.spacing.md, paddingTop: theme.spacing.md }} />
+                <FeatureCarousel />
+              </View>
             </View>
           </View>
-          <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss} />
-          {!keyboardVisible && (
-            <DiaryReflectionButton
-              onPress={handleGenerateReflection}
-              loading={loading}
-              cooldownTime={cooldownTime}
-              isCountingDown={isCountingDown}
-              onFinish={handleCountDownFinish}
-            />
-          )}
+
+          {/* BACK 面：影つきの箱ごと（内容は元の back をそのまま内側へ） */}
+          <View style={styles.cardShadow}>
+            <View style={styles.cardClip}>
+              <View style={styles.back}>
+                {responseData ? (
+                  <View style={styles.cardInner}>
+                    <View style={styles.cardHeader}>
+                      <Text style={styles.cardTitle} selectable>
+                        {responseData.title}
+                      </Text>
+                      <FlipPressable onPress={() => setFlipped(!flipped)} />
+                    </View>
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                      <TextInput value={responseData.summary} editable={false} multiline style={styles.cardText} selectionColor={theme.colors.selection} />
+                      <View style={styles.buttonContainer}>
+                        <OpenCalendarButton onPress={openCalendar} />
+                      </View>
+                    </ScrollView>
+                  </View>
+                ) : (
+                  <View style={styles.cardInner}>
+                    <View style={styles.cardHeader}>
+                      <Text style={{ fontSize: 20, fontWeight: 600 }}>{i18n.t("sample_response")}</Text>
+                      <FlipPressable onPress={() => setFlipped(!flipped)} />
+                    </View>
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                      <Text style={[styles.cardTitle, { marginBottom: theme.spacing.md }]}>{i18n.t("reflection.title")}</Text>
+                      {(i18n.t("reflection.overview", { returnObjects: true }) as string[]).map((line, index) => (
+                        <Text key={index} style={styles.cardText}>
+                          {line === "" ? " " : line}
+                        </Text>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+              </View>
+            </View>
+          </View>
+        </FlipCard>
+      </Reanimated.View>
+
+      {/* 下段：入力とボタン */}
+      <View style={styles.bottomArea}>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder={placeholder}
+            placeholderTextColor={theme.colors.placeholder}
+            value={content}
+            onChangeText={setContent} // ★ Zustand に書き込むだけ
+            multiline
+            onBlur={() => Keyboard.dismiss()}
+          />
+          <View style={styles.buttonContainer}>
+            <SaveButton onPress={() => handleInsert(content)} />
+          </View>
         </View>
-      </SafeAreaView>
-    </KeyboardAvoidingView>
+
+        {/* 背景タップでキーボード閉じる */}
+        <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss} />
+
+        <DiaryReflectionButton onPress={handleGenerateReflection} loading={loading} cooldownTime={cooldownTime} isCountingDown={isCountingDown} onFinish={handleCountDownFinish} />
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -285,26 +268,41 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
     paddingHorizontal: theme.spacing.md,
   },
+  face: { flex: 1 },
+  back: { flex: 1 },
+  flipContainer: {
+    flex: 1,
+    marginBottom: theme.spacing.lg,
+  },
   card: {
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.md,
-    paddingHorizontal: theme.spacing.md,
-    paddingBottom: theme.spacing.md,
+    overflow: "hidden",
     marginBottom: theme.spacing.lg,
     ...theme.shadows.iosOnlyLight,
   },
-  face: {
+  cardShadow: {
     flex: 1,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.md,
+    ...theme.shadows.iosOnlyLight,
   },
-  back: {
+  cardClip: {
     flex: 1,
+    borderRadius: theme.radius.md,
+    overflow: "hidden",
+  },
+
+  cardInner: {
+    flex: 1,
+    paddingHorizontal: theme.spacing.md,
+    paddingBottom: theme.spacing.md,
   },
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: theme.spacing.md,
-    paddingRight: theme.spacing.sm,
   },
   cardTitle: {
     fontSize: 16,
@@ -317,6 +315,12 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     padding: 0,
   },
+
+  bottomArea: {
+    flex: 1,
+    justifyContent: "space-between",
+    position: "relative",
+  },
   inputContainer: {
     paddingVertical: theme.spacing.sm,
     paddingHorizontal: theme.spacing.md,
@@ -327,11 +331,18 @@ const styles = StyleSheet.create({
   input: {
     fontSize: 16,
     color: theme.colors.secondary,
-    maxHeight: 100,
+    maxHeight: 120,
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    marginTop: theme.spacing.sm,
+    marginTop: 10,
+  },
+
+  fabWrap: {
+    position: "absolute",
+    left: theme.spacing.md,
+    right: theme.spacing.md,
+    bottom: theme.spacing.md,
   },
 });

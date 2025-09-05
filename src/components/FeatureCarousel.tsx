@@ -103,6 +103,7 @@ const styles = StyleSheet.create({
   dotsContainer: {
     flexDirection: "row",
     alignSelf: "center",
+    marginBottom: 16
   },
   dot: {
     width: 8,

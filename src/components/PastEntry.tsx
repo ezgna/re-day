@@ -24,7 +24,7 @@ const PastEntry: FC<PastEntryProps> = ({ entries, onDelete, onEdit }) => {
                 <Text style={styles.timestamp}>{displayDate}</Text>
                 <EditActionSheet deleteEntry={() => onDelete(entry.id)} editEntry={() => onEdit(entry.id, entry.content)} />
               </View>
-              <TextInput value={entry.content} editable={false} multiline style={styles.entryContent} selectionColor={theme.colors.selection} />
+              <TextInput value={entry.content} editable={false} multiline style={styles.entryContent} selectionColor={theme.colors.selection} scrollEnabled={false} />
             </View>
           </View>
         );
@@ -39,24 +39,25 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.md,
-    marginBottom: theme.spacing.sm,
+    marginBottom: 10,
     ...theme.shadows.light,
   },
   entryWrapper: {
-    margin: 10,
+    margin: 12,
   },
   entryHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginRight: theme.spacing.sm,
+    marginBottom: 2,
   },
   timestamp: {
     fontSize: 12,
     color: theme.colors.primary,
   },
   entryContent: {
-    fontSize: 16,
+    fontSize: 17,
     marginTop: theme.spacing.xs,
     color: theme.colors.primary,
     padding: 0,

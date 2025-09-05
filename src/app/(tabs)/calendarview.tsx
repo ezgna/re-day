@@ -109,7 +109,7 @@ const CalendarView = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <Calendar
         key={selected} // pickedDateに合わせて月表示を変えるために必須
         current={selected} // pickedDateに合わせて月表示を変えるために必須
@@ -148,7 +148,7 @@ export default CalendarView;
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: theme.spacing.sm,
+    // marginTop: theme.spacing.sm,
     paddingHorizontal: theme.spacing.md,
     flex: 1, // for scrollView
     backgroundColor: theme.colors.background,
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   input: {
     fontSize: 16,
     color: theme.colors.secondary,
-    maxHeight: 60,
+    maxHeight: 120,
   },
   buttonContainer: {
     flexDirection: "row",
