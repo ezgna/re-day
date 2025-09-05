@@ -57,5 +57,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-sqlite",
     "expo-localization",
     "expo-web-browser",
+    "expo-mail-composer",
   ],
 });

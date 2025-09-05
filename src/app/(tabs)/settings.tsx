@@ -1,14 +1,50 @@
 import i18n from "@/utils/i18n";
 import { theme } from "@/utils/theme";
-import { Feather, Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Alert, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { BookCheck, ShieldCheck } from "lucide-react-native";
+import { BookCheck, Mail, Mails, ShieldCheck } from "lucide-react-native";
+import * as Device from "expo-device";
+import * as Application from "expo-application";
+import * as MailComposer from "expo-mail-composer";
 
 const Settings = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<"English" | "Japanese">();
+
+  const openSupportMail = async () => {
+    const isAvailable = await MailComposer.isAvailableAsync();
+    if (!isAvailable) {
+      Alert.alert(i18n.t("mail_app_unavailable"));
+      return;
+    }
+
+    const deviceInfo = [`デバイス: ${Device.manufacturer} ${Device.modelName}`, `OS: ${Device.osName} ${Device.osVersion}`, `バージョン: ${Application.nativeBuildVersion}`].join(
+      "\n"
+    );
+
+    const body = [
+      "お手数ではございますが、以下に詳細をご入力ください。詳しくご記入いただくと、より適切に対応可能です。",
+      "",
+      "• お問い合わせ内容：",
+      "• スクリーンショットや動画：",
+      "• 返信を希望：する / しない",
+      "",
+      "================================",
+      "※以下の項目は自動で入力されています。削除せずそのままお送りください。",
+      "",
+      deviceInfo,
+      "",
+      "本メールに含まれる情報は、サポートチームが収集・利用する場合があります。取得した情報は問い合わせ対応にのみ使用されます。",
+      "削除していただくことも可能ですが、その際はサポート対応に制限が生じることがありますので、あらかじめご了承ください。",
+    ].join("\n");
+
+    await MailComposer.composeAsync({
+      recipients: ["ensalfjsk@yahoo.com"],
+      subject: "アプリ内お問い合わせ",
+      body,
+    });
+  };
 
   const openPrivacyPolicy = () => {
     Alert.alert(i18n.t("external_link"), i18n.t("external_link_message"), [
@@ -50,8 +86,12 @@ const Settings = () => {
             <Text style={styles.optionText}>Export / Import</Text>
           </Pressable> */}
 
+          <Pressable onPress={openSupportMail} style={styles.option}>
+            <Mails size={28} color="dimgray" />
+            <Text style={styles.optionText}>{i18n.t("contact")}</Text>
+          </Pressable>
+
           <Pressable onPress={openPrivacyPolicy} style={styles.option}>
-            {/* <Feather name="external-link" size={24} style={styles.icon} /> */}
             <ShieldCheck size={28} color="dimgray" />
             <Text style={styles.optionText}>{i18n.t("privacy_policy")}</Text>
           </Pressable>

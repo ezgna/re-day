@@ -18,6 +18,9 @@ const i18n = new I18n({
     sample_response: "Sample Response",
     noRecords: "No records yet.",
     save_success: "Saved successfully",
+    contact: "Contact us",
+    mail_app_unavailable: "Mail app is unavailable.",
+
     placeholders: ["What’s on your mind now?", "Jot down your memories…", "Capture your day’s moments…", "Write your thoughts here…", "Start your diary entry now…"],
     onboarding: {
       step1: {
@@ -75,6 +78,10 @@ const i18n = new I18n({
     sample_response: "サンプルレスポンス",
     noRecords: "まだ記録がありません",
     save_success: "保存しました",
+    contact: "お問い合わせ",
+    mail_app_unavailable: "メールアプリが利用できません",
+    
+
     placeholders: [
       "今、どんなことを考えていますか？",
       "何かメモしたいことはありますか？",

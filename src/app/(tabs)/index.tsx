@@ -17,15 +17,13 @@ import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } fr
 import Reanimated, { Extrapolation, interpolate, useAnimatedKeyboard, useAnimatedStyle } from "react-native-reanimated";
 import Toast from "react-native-root-toast";
 import { SafeAreaView } from "react-native-safe-area-context";
-// ★ 追加：Zustand ストア
 import { useDraftStore } from "@/src/stores/useDraftStore";
 
 const STORAGE_KEY = "summary_cache";
 const DEADLINE_KEY = "reflectionCooldownDeadline";
-const COOLDOWN_SEC = 60;
+const COOLDOWN_SEC = 60 * 5;
 
 const Index = () => {
-  // ★ ここが変更：入力テキストは Zustand から
   const content = useDraftStore((s) => s.content);
   const setContent = useDraftStore((s) => s.setContent);
   const clearDraft = useDraftStore((s) => s.clear);
@@ -53,7 +51,7 @@ const Index = () => {
   const keyboard = useAnimatedKeyboard();
 
   const animatedCardSlotStyle = useAnimatedStyle(() => {
-    const f = interpolate(keyboard.height.value, [0, 280], [1.5, 0.7], Extrapolation.CLAMP);
+    const f = interpolate(keyboard.height.value, [0, 280], [1.5, 0.6], Extrapolation.CLAMP);
     return { flex: f };
   });
 
@@ -317,7 +315,7 @@ const styles = StyleSheet.create({
   },
 
   bottomArea: {
-    flex: 1,
+    flex: 0.9,
     justifyContent: "space-between",
     position: "relative",
   },
@@ -337,12 +335,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     marginTop: 10,
-  },
-
-  fabWrap: {
-    position: "absolute",
-    left: theme.spacing.md,
-    right: theme.spacing.md,
-    bottom: theme.spacing.md,
   },
 });
