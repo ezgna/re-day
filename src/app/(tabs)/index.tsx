@@ -168,7 +168,13 @@ const Index = () => {
     })();
   }, []);
 
-  const handleCountDownFinish = () => setIsCountingDown(false);
+  // const handleCountDownFinish = () => setIsCountingDown(false);
+
+  const handleCountDownFinish = React.useCallback(() => {
+    // 同フレームでのアンマウントを避ける
+    requestAnimationFrame(() => setIsCountingDown(false));
+    // or: setTimeout(() => setIsCountingDown(false), 0);
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>

@@ -1,10 +1,10 @@
 import i18n from "@/utils/i18n";
 import { theme } from "@/utils/theme";
 import React, { useState } from "react";
-import { Alert, Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { BookCheck, Mail, Mails, ShieldCheck } from "lucide-react-native";
+import { BookCheck, Mails, ShieldCheck } from "lucide-react-native";
 import * as Device from "expo-device";
 import * as Application from "expo-application";
 import * as MailComposer from "expo-mail-composer";
@@ -96,10 +96,12 @@ const Settings = () => {
             <Text style={styles.optionText}>{i18n.t("privacy_policy")}</Text>
           </Pressable>
 
-          <Pressable onPress={openTermsOfUse} style={[styles.option, { borderBottomWidth: 0 }]}>
-            <BookCheck size={28} color="dimgray" />
-            <Text style={styles.optionText}>{i18n.t("terms_of_use")}</Text>
-          </Pressable>
+          {Platform.OS === "ios" && (
+            <Pressable onPress={openTermsOfUse} style={[styles.option, { borderBottomWidth: 0 }]}>
+              <BookCheck size={28} color="dimgray" />
+              <Text style={styles.optionText}>{i18n.t("terms_of_use")}</Text>
+            </Pressable>
+          )}
         </View>
       </View>
 
