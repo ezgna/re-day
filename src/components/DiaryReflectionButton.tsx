@@ -2,7 +2,7 @@ import i18n from "@/utils/i18n";
 import { theme } from "@/utils/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Pressable, StyleSheet, Text, ActivityIndicator, Platform } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
 import CountDown from "react-native-countdown-component";
 
 interface Props {

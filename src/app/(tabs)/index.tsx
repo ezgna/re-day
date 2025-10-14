@@ -112,7 +112,8 @@ const Index = () => {
   };
 
   const openCalendar = () => {
-    router.replace({ pathname: "/calendarview", params: { pickedDate } });
+    // 毎回ユニークな t を付与して受け側で再マウントを強制
+    router.push({ pathname: "/calendarview", params: { pickedDate, t: String(Date.now()) } });
   };
 
   const handleGenerateReflection = async () => {
@@ -162,6 +163,21 @@ const Index = () => {
     // or: setTimeout(() => setIsCountingDown(false), 0);
   }, []);
 
+  const [backHeaderHeight, setBackHeaderHeight] = useState(0);
+  const [backTextHeight, setBackTextHeight] = useState(0);
+  const [backButtonsHeight, setBackButtonsHeight] = useState(0);
+  const [backMinHeight, setBackMinHeight] = useState(500);
+
+  useEffect(() => {
+    if (!responseData) {
+      setBackMinHeight(500);
+      return;
+    }
+    const paddingBottom = theme.spacing.md; // cardInner の paddingBottom 相当
+    const computed = Math.ceil(backHeaderHeight + backTextHeight + backButtonsHeight + paddingBottom);
+    setBackMinHeight(computed);
+  }, [responseData, backHeaderHeight, backTextHeight, backButtonsHeight]);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
@@ -195,52 +211,59 @@ const Index = () => {
         <View style={{ flex: 1 }}>
           <FlipCard flip={flipped} perspective={1000} flipHorizontal flipVertical={false} style={styles.flipContainer}>
             {/* FRONT 面：影つきの箱ごと */}
-            <View style={styles.cardShadow}>
-              <View style={styles.cardClip}>
-                <View style={styles.face}>
-                  <FlipPressable onPress={() => setFlipped(!flipped)} style={{ alignSelf: "flex-end", paddingRight: theme.spacing.md, paddingTop: theme.spacing.md }} />
-                  <FeatureCarousel />
-                </View>
+            <View style={[styles.cardShadow, { height: 400 }]}>
+              {/* <View style={styles.cardClip}> */}
+              <View style={styles.face}>
+                <FlipPressable onPress={() => setFlipped(!flipped)} style={{ alignSelf: "flex-end", paddingRight: theme.spacing.md, paddingTop: theme.spacing.md }} />
+                <FeatureCarousel />
               </View>
+              {/* </View> */}
             </View>
 
             {/* BACK 面：影つきの箱ごと（内容は元の back をそのまま内側へ） */}
-            <View style={styles.cardShadow}>
-              <View style={styles.cardClip}>
-                <View style={styles.back}>
-                  {responseData ? (
-                    <View style={styles.cardInner}>
-                      <View style={styles.cardHeader}>
-                        <Text style={styles.cardTitle} selectable>
-                          {responseData.title}
+            <View style={[styles.cardShadow, { height: backMinHeight }]}>
+              {/* <View style={styles.cardClip}> */}
+              <View style={styles.back}>
+                {responseData ? (
+                  <View style={styles.cardInner}>
+                    <View style={styles.cardHeader} onLayout={(e) => setBackHeaderHeight(e.nativeEvent.layout.height)}>
+                      <Text style={styles.cardTitle} selectable>
+                        {responseData.title}
+                      </Text>
+                      <FlipPressable onPress={() => setFlipped(!flipped)} />
+                    </View>
+                    <View>
+                      <TextInput
+                        value={responseData.summary}
+                        editable={false}
+                        multiline
+                        style={styles.cardText}
+                        selectionColor={theme.colors.selection}
+                        onContentSizeChange={(e) => setBackTextHeight(e.nativeEvent.contentSize.height)}
+                      />
+                      <View style={styles.buttonContainer} onLayout={(e) => setBackButtonsHeight(e.nativeEvent.layout.height)}>
+                        <OpenCalendarButton onPress={openCalendar} />
+                      </View>
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.cardInner}>
+                    <View style={styles.cardHeader}>
+                      <Text style={{ fontSize: 20, fontWeight: 600 }}>{i18n.t("sample_response")}</Text>
+                      <FlipPressable onPress={() => setFlipped(!flipped)} />
+                    </View>
+                    <View>
+                      <Text style={[styles.cardTitle, { marginBottom: theme.spacing.md }]}>{i18n.t("reflection.title")}</Text>
+                      {(i18n.t("reflection.overview", { returnObjects: true }) as string[]).map((line, index) => (
+                        <Text key={index} style={styles.cardText}>
+                          {line === "" ? " " : line}
                         </Text>
-                        <FlipPressable onPress={() => setFlipped(!flipped)} />
-                      </View>
-                      <View>
-                        <TextInput value={responseData.summary} editable={false} multiline style={styles.cardText} selectionColor={theme.colors.selection} />
-                        <View style={styles.buttonContainer}>
-                          <OpenCalendarButton onPress={openCalendar} />
-                        </View>
-                      </View>
+                      ))}
                     </View>
-                  ) : (
-                    <View style={styles.cardInner}>
-                      <View style={styles.cardHeader}>
-                        <Text style={{ fontSize: 20, fontWeight: 600 }}>{i18n.t("sample_response")}</Text>
-                        <FlipPressable onPress={() => setFlipped(!flipped)} />
-                      </View>
-                      <View>
-                        <Text style={[styles.cardTitle, { marginBottom: theme.spacing.md }]}>{i18n.t("reflection.title")}</Text>
-                        {(i18n.t("reflection.overview", { returnObjects: true }) as string[]).map((line, index) => (
-                          <Text key={index} style={styles.cardText}>
-                            {line === "" ? " " : line}
-                          </Text>
-                        ))}
-                      </View>
-                    </View>
-                  )}
-                </View>
+                  </View>
+                )}
               </View>
+              {/* </View> */}
             </View>
           </FlipCard>
         </View>
@@ -264,19 +287,17 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.md,
   },
   cardShadow: {
-    flex: 1,
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.md,
     ...theme.shadows.iosOnlyLight,
   },
-  cardClip: {
-    flex: 1,
-    borderRadius: theme.radius.md,
-    overflow: "hidden",
-  },
-
+  // cardClip: {
+  //   flex: 1,
+  //   borderRadius: theme.radius.md,
+  //   overflow: "hidden",
+  // },
   cardInner: {
-    flex: 1,
+    // flex: 1,
     paddingHorizontal: theme.spacing.md,
     paddingBottom: theme.spacing.md,
   },

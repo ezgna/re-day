@@ -18,7 +18,7 @@ const CalendarView = () => {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingContent, setEditingContent] = useState("");
-  const params = useLocalSearchParams<{ pickedDate?: string }>();
+  const params = useLocalSearchParams<{ pickedDate?: string; t?: string }>();
 
   // console.log(params)
 
@@ -40,7 +40,7 @@ const CalendarView = () => {
   useEffect(() => {
     if (!params.pickedDate) return;
     setSelected(params.pickedDate);
-  }, [params.pickedDate]);
+  }, [params.pickedDate, params.t]);
 
   useEffect(() => {
     if (params.pickedDate) return;
@@ -111,7 +111,7 @@ const CalendarView = () => {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <Calendar
-        key={selected} // pickedDateに合わせて月表示を変えるために必須
+        key={`${selected}-${params.t ?? ''}`} // t 変更で確実に再マウント
         current={selected} // pickedDateに合わせて月表示を変えるために必須
         style={styles.calendar}
         onDayPress={(day) => {

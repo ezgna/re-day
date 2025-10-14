@@ -1,8 +1,7 @@
-import i18n from "@/utils/i18n";
 import { theme } from "@/utils/theme";
+import * as Haptics from "expo-haptics";
 import React from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
-import * as Haptics from "expo-haptics";
 
 const SaveButton = ({ onPress }: { onPress: () => void }) => {
   return (
