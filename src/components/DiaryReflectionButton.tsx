@@ -20,11 +20,6 @@ const DiaryReflectionButton: React.FC<Props> = ({ onPress, loading, cooldownTime
     <Pressable
       onPress={disabled ? undefined : onPress}
       disabled={disabled}
-      style={({ pressed }) => [
-        styles.touch,
-        disabled && styles.touchDisabled,
-        pressed && !disabled && styles.touchPressed,
-      ]}
     >
       {/* グラデ枠（縁取り） */}
       <LinearGradient
@@ -46,7 +41,6 @@ const DiaryReflectionButton: React.FC<Props> = ({ onPress, loading, cooldownTime
               colors={["rgba(0,0,0,0.00)", "rgba(0,0,0,0.18)"]}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
-              style={styles.bottomLip}
               pointerEvents="none"
             />
           )}
@@ -78,52 +72,17 @@ const DiaryReflectionButton: React.FC<Props> = ({ onPress, loading, cooldownTime
 };
 
 const styles = StyleSheet.create({
-  // タップ領域（影はここで）
-  touch: {
-    borderRadius: theme.radius.md,
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 10,
-    transform: [{ translateY: 0 }, { scale: 1 }],
-  },
-  touchPressed: {
-    shadowOpacity: 0.18,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-    transform: [{ translateY: Platform.OS === "ios" ? 1 : 0 }, { scale: 0.985 }],
-  },
-  touchDisabled: {
-    shadowOpacity: 0.1,
-    elevation: 2,
-  },
-
   // 外枠のグラデ（縁取り）
   frameGradient: {
-    borderRadius: theme.radius.md,
-    padding: 0,
+    borderRadius: 32,
   },
 
   // 本体の塗り
   fill: {
     height: 55,
-    borderRadius: theme.radius.md,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
-  },
-
-  // ボトムリップ（下端の濃い影で厚み）
-  bottomLip: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 18,
-    borderBottomLeftRadius: theme.radius.md,
-    borderBottomRightRadius: theme.radius.md,
   },
 
   text: {

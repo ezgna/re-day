@@ -16,18 +16,19 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.card,
     borderWidth: 0.5,
     borderColor: theme.colors.border,
-    paddingVertical: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: 5,
     ...theme.shadows.light,
     marginBottom: theme.spacing.xs,
   },
   pressed: {
     opacity: 0.82,
-    // transform: [{ scale: 0.97 }],
+    transform: [{ scale: 0.97 }],
   },
   text: {
     fontSize: 14,
+    // fontWeight: "400",
     color: theme.colors.secondary,
   },
 });

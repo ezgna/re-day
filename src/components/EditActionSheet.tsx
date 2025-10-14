@@ -42,8 +42,8 @@ export const EditActionSheet: FC<EditActionSheetProps> = ({ deleteEntry, editEnt
   };
 
   return (
-    <Pressable onPress={onPress}>
-      <Entypo name="dots-three-horizontal" size={12} color={theme.colors.secondary} />
+    <Pressable onPress={onPress} hitSlop={18}>
+      <Entypo name="dots-three-horizontal" size={14} color={theme.colors.secondary} />
     </Pressable>
   );
 };

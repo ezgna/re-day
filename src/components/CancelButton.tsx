@@ -13,11 +13,12 @@ export default CancelButton;
 
 const styles = StyleSheet.create({
   button: {
-    marginRight: 12,
+    marginRight: 16,
+    marginBottom: 6,
   },
   text: {
-    fontSize: 14,
-    color: "gray",
+    fontSize: 16,
     fontWeight: "500",
+    color: "gray",
   },
 });

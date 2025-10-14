@@ -13,7 +13,7 @@ const SaveButton = ({ onPress }: { onPress: () => void }) => {
       }}
       style={({ pressed }) => [styles.pressable, pressed && styles.pressed]}
     >
-      <Text style={styles.text}>{i18n.t("save")}</Text>
+      <Text style={styles.text}>Save</Text>
     </Pressable>
   );
 };
@@ -23,8 +23,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.card,
     borderWidth: 0.5,
     borderColor: theme.colors.border,
-    paddingVertical: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    marginBottom: 6,
     borderRadius: 5,
     ...theme.shadows.light,
   },
@@ -33,7 +34,8 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.97 }],
   },
   text: {
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: '500',
     color: theme.colors.secondary,
   },
 });

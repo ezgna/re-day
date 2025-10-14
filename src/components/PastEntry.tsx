@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 12,
-    color: theme.colors.primary,
+    color: theme.colors.secondary,
   },
   entryContent: {
     fontSize: 17,
