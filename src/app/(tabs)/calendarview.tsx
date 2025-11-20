@@ -11,9 +11,10 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Keyboard, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { MarkingProps } from "react-native-calendars/src/calendar/day/marking";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 const CalendarView = () => {
+  const insets = useSafeAreaInsets();
   const [selected, setSelected] = useState("");
   const [entries, setEntries] = useState<Entry[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -111,7 +112,7 @@ const CalendarView = () => {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <Calendar
-        key={`${selected}-${params.t ?? ''}`} // t 変更で確実に再マウント
+        key={`${selected}-${params.t ?? ""}`} // t 変更で確実に再マウント
         current={selected} // pickedDateに合わせて月表示を変えるために必須
         style={styles.calendar}
         onDayPress={(day) => {
@@ -136,7 +137,10 @@ const CalendarView = () => {
             </View>
           </View>
         ) : null}
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingTop: theme.spacing.sm, paddingBottom: insets.bottom + 64, gap: theme.spacing.sm }}
+        >
           <PastEntry entries={filteredEntries} onDelete={handleDelete} onEdit={handleEdit} />
         </ScrollView>
       </View>
@@ -156,8 +160,8 @@ const styles = StyleSheet.create({
   calendar: {
     borderRadius: theme.radius.md,
     padding: theme.spacing.xs,
-    marginBottom: theme.spacing.md,
-    ...theme.shadows.light,
+    // marginBottom: theme.spacing.md,
+    // ...theme.shadows.light,
   },
   entryContainer: {
     flex: 1, // for scrollView
@@ -165,8 +169,10 @@ const styles = StyleSheet.create({
   editorCard: {
     backgroundColor: "#fff",
     borderRadius: theme.radius.md,
-    marginBottom: theme.spacing.sm,
-    ...theme.shadows.medium,
+    marginTop: theme.spacing.sm,
+    borderWidth: 1,
+    borderColor: "gainsboro",
+    // ...theme.shadows.medium,
   },
   inputContainer: {
     borderRadius: theme.radius.md,

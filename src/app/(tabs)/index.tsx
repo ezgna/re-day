@@ -13,16 +13,21 @@ import { theme } from "@/utils/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Keyboard, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Button, Keyboard, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import Toast from "react-native-root-toast";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDraftStore } from "@/src/stores/useDraftStore";
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
 
 const STORAGE_KEY = "summary_cache";
 const DEADLINE_KEY = "reflectionCooldownDeadline";
 const COOLDOWN_SEC = 60 * 5;
 
 const Index = () => {
+  const insets = useSafeAreaInsets();
+
   const content = useDraftStore((s) => s.content);
   const setContent = useDraftStore((s) => s.setContent);
   const clearDraft = useDraftStore((s) => s.clear);
@@ -178,9 +183,94 @@ const Index = () => {
     setBackMinHeight(computed);
   }, [responseData, backHeaderHeight, backTextHeight, backButtonsHeight]);
 
+  // Notifications.setNotificationHandler({
+  //   handleNotification: async () => ({
+  //     shouldPlaySound: false,
+  //     shouldSetBadge: false,
+  //     shouldShowBanner: true, // iOSの通知バナー
+  //     shouldShowList: true, // 通知センターにも載せる
+  //   }),
+  // });
+
+  // async function registerForPushAsync() {
+  //   if (!Device.isDevice) return null;
+
+  // // Android 8+ はチャンネル必須
+  // if (Platform.OS === "android") {
+  //   await Notifications.setNotificationChannelAsync("default", {
+  //     name: "default",
+  //     importance: Notifications.AndroidImportance.MAX,
+  //     vibrationPattern: [0, 250, 250, 250],
+  //   });
+  // }
+
+  // 権限
+  //   const { status: init } = await Notifications.getPermissionsAsync();
+  //   let status = init;
+  //   if (init !== "granted") {
+  //     const req = await Notifications.requestPermissionsAsync();
+  //     status = req.status;
+  //   }
+  //   if (status !== "granted") return null;
+
+  //   // Expo Push Token（projectId を明示）
+  //   const projectId = (Constants as any)?.expoConfig?.extra?.eas?.projectId ?? (Constants as any)?.easConfig?.projectId;
+  //   const token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
+  //   return token;
+  // }
+
+  // const [token, setToken] = useState<string | null>(null);
+  // const [last, setLast] = useState<Notifications.Notification | null>(null);
+
+  // useEffect(() => {
+  //   registerForPushAsync().then(setToken);
+
+  //   const subRecv = Notifications.addNotificationReceivedListener((n) => {
+  //     setLast(n);
+  //   });
+  //   const subTap = Notifications.addNotificationResponseReceivedListener((r) => {
+  //     console.log("Tapped:", r);
+  //   });
+  //   return () => {
+  //     subRecv.remove();
+  //     subTap.remove();
+  //   };
+  // }, []);
+
+  // const scheduleLocal = async () => {
+  //   const trigger: Notifications.TimeIntervalTriggerInput = {
+  //     type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+  //     seconds: 5,
+  //     repeats: false,
+  //   };
+
+  //   const id = await Notifications.scheduleNotificationAsync({
+  //     content: { title: "LOCAL after 5s", body: "This is local." },
+  //     trigger,
+  //   });
+  //   console.log("Scheduled local id:", id);
+  // };
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
+      {/* <View>
+        <Text selectable style={{ fontWeight: "600", marginBottom: 8 }}>
+          ExpoPushToken:
+        </Text>
+        <Text selectable style={{ marginBottom: 16 }}>
+          {token ?? "(requesting...)"}
+        </Text>
+
+        <Button title="Schedule local (5s)" onPress={scheduleLocal} />
+
+        <View style={{ marginTop: 24 }}>
+          <Text style={{ fontWeight: "600" }}>Last notification:</Text>
+          <Text>Title: {last?.request.content.title ?? "-"}</Text>
+          <Text>Body: {last?.request.content.body ?? "-"}</Text>
+        </View>
+      </View> */}
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 200 }}>
         {/* リフレクションボタン */}
         <View style={styles.reflectButtonContainer}>
           <DiaryReflectionButton
@@ -212,17 +302,14 @@ const Index = () => {
           <FlipCard flip={flipped} perspective={1000} flipHorizontal flipVertical={false} style={styles.flipContainer}>
             {/* FRONT 面：影つきの箱ごと */}
             <View style={[styles.cardShadow, { height: 400 }]}>
-              {/* <View style={styles.cardClip}> */}
               <View style={styles.face}>
                 <FlipPressable onPress={() => setFlipped(!flipped)} style={{ alignSelf: "flex-end", paddingRight: theme.spacing.md, paddingTop: theme.spacing.md }} />
                 <FeatureCarousel />
               </View>
-              {/* </View> */}
             </View>
 
-            {/* BACK 面：影つきの箱ごと（内容は元の back をそのまま内側へ） */}
+            {/* BACK 面：影つきの箱ごと */}
             <View style={[styles.cardShadow, { height: backMinHeight }]}>
-              {/* <View style={styles.cardClip}> */}
               <View style={styles.back}>
                 {responseData ? (
                   <View style={styles.cardInner}>
@@ -263,7 +350,6 @@ const Index = () => {
                   </View>
                 )}
               </View>
-              {/* </View> */}
             </View>
           </FlipCard>
         </View>
@@ -291,13 +377,8 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.md,
     ...theme.shadows.iosOnlyLight,
   },
-  // cardClip: {
-  //   flex: 1,
-  //   borderRadius: theme.radius.md,
-  //   overflow: "hidden",
-  // },
+
   cardInner: {
-    // flex: 1,
     paddingHorizontal: theme.spacing.md,
     paddingBottom: theme.spacing.md,
   },

@@ -1,17 +1,14 @@
 import i18n from "@/utils/i18n";
 import { theme } from "@/utils/theme";
-import React, { useState } from "react";
-import { Alert, Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import RNPickerSelect from "react-native-picker-select";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { BookCheck, Mails, ShieldCheck } from "lucide-react-native";
-import * as Device from "expo-device";
 import * as Application from "expo-application";
+import * as Device from "expo-device";
 import * as MailComposer from "expo-mail-composer";
+import { BookCheck, Mails, ShieldCheck } from "lucide-react-native";
+import React from "react";
+import { Alert, Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Settings = () => {
-  const [selectedLanguage, setSelectedLanguage] = useState<"English" | "Japanese">();
-
   const openSupportMail = async () => {
     const isAvailable = await MailComposer.isAvailableAsync();
     if (!isAvailable) {
@@ -76,15 +73,6 @@ const Settings = () => {
     <SafeAreaView style={styles.container}>
       <View style={{ flex: 1 }}>
         <View style={styles.optionContainer}>
-          {/* <Pressable style={styles.option}>
-            <Ionicons name="options-outline" size={24} style={styles.icon} />
-            <Text style={styles.optionText}>Customization</Text>
-          </Pressable>
-
-          <Pressable style={[styles.option, { borderBottomWidth: 0 }]}>
-            <Ionicons name="cloud-upload-outline" size={24} style={styles.icon} />
-            <Text style={styles.optionText}>Export / Import</Text>
-          </Pressable> */}
 
           <Pressable onPress={openSupportMail} style={styles.option}>
             <Mails size={28} color="dimgray" />
@@ -104,54 +92,6 @@ const Settings = () => {
           )}
         </View>
       </View>
-
-      {/* <View style={{ flex: 1 }}>
-        <Text style={styles.label}>LANGUAGE</Text> */}
-
-      {/* this view is for android */}
-      {/* <View style={{ elevation: 3, borderRadius: theme.radius.sm }}>
-          <RNPickerSelect
-            onValueChange={(value) => setSelectedLanguage(value)}
-            value={selectedLanguage}
-            placeholder={{}}
-            useNativeAndroidPickerStyle={false} // android
-            items={[
-              { label: "English", value: "English" },
-              { label: "Japanese", value: "Japanese" },
-            ]}
-            style={{
-              inputIOSContainer: {
-                pointerEvents: "none",
-                padding: theme.spacing.md,
-                backgroundColor: theme.colors.card,
-                borderRadius: theme.radius.sm,
-                flexDirection: "row",
-                alignItems: "center",
-                ...theme.shadows.light,
-              },
-              inputIOS: {
-                fontSize: 16,
-                color: theme.colors.secondary,
-              },
-              inputAndroidContainer: {
-                padding: theme.spacing.sm,
-                backgroundColor: theme.colors.card,
-                borderRadius: theme.radius.sm,
-                flexDirection: "row",
-                alignItems: "center",
-              },
-              inputAndroid: {
-                fontSize: 16,
-                color: theme.colors.secondary,
-              },
-              iconContainer: {
-                marginRight: theme.spacing.md,
-              },
-            }}
-            Icon={() => <Ionicons name="chevron-down" size={20} style={styles.icon} />}
-          />
-        </View> */}
-      {/* </View> */}
     </SafeAreaView>
   );
 };

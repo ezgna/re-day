@@ -20,12 +20,21 @@ const i18n = new I18n({
     save_success: "Saved successfully",
     contact: "Contact us",
     mail_app_unavailable: "Mail app is unavailable.",
+    reflect: "Reflect",
+    calendar: "Calendar",
+    settings: "Settings",
 
     placeholders: ["What’s on your mind now?", "Jot down your memories…", "Capture your day’s moments…", "Write your thoughts here…", "Start your diary entry now…"],
     onboarding: {
       step1: {
         title: "Write a quick line first!",
-        description: ["It can be today's events or a sudden idea,", "or just a simple memo—anything is fine.", "", "You can view your saved records anytime", "from the calendar."],
+        description: [
+          "It can be today's events or a sudden idea,",
+          "or just a simple memo—anything is fine.",
+          "",
+          "You can view your saved records anytime",
+          "from the calendar.",
+        ],
       },
       step2: {
         title: "One tap to revisit your memories",
@@ -80,7 +89,9 @@ const i18n = new I18n({
     save_success: "保存しました",
     contact: "お問い合わせ",
     mail_app_unavailable: "メールアプリが利用できません",
-    
+    reflect: "振り返る",
+    calendar: "カレンダー",
+    settings: "設定",
 
     placeholders: [
       "今、どんなことを考えていますか？",

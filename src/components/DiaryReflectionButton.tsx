@@ -3,18 +3,36 @@ import { theme } from "@/utils/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
-import CountDown from "react-native-countdown-component";
+import { useEffect, useState } from "react";
+import { useCountdown, formatMMSS } from "@/src/hooks/useCountdown";
 
 interface Props {
   onPress: () => void;
   loading: boolean;
+  // 残り秒（押下時や復帰時点の見込み秒数）
   cooldownTime: number;
+  // カウントダウン中かどうか（表示切替用）
   isCountingDown: boolean;
+  // 終了時のハンドラ
   onFinish: () => void;
 }
 
 const DiaryReflectionButton: React.FC<Props> = ({ onPress, loading, cooldownTime, isCountingDown, onFinish }) => {
   const disabled = loading || isCountingDown;
+
+  // 既存の props を崩さず、内部で deadline を決定（stateで持ち即レンダー反映）
+  const [deadline, setDeadline] = useState<number | null>(() => (isCountingDown ? Date.now() + cooldownTime * 1000 : null));
+  useEffect(() => {
+    if (isCountingDown) {
+      // isCountingDown になったタイミングで基準となる deadline を設定
+      // （親は復帰時に cooldownTime を再計算してくるため、ここでの now+sec は整合する）
+      setDeadline(Date.now() + cooldownTime * 1000);
+    } else {
+      setDeadline(null);
+    }
+  }, [isCountingDown, cooldownTime]);
+
+  const { mmss } = useCountdown(deadline, onFinish);
 
   return (
     <Pressable
@@ -49,19 +67,7 @@ const DiaryReflectionButton: React.FC<Props> = ({ onPress, loading, cooldownTime
           {loading ? (
             <ActivityIndicator size="small" color="#F4F6F7" />
           ) : isCountingDown ? (
-            <CountDown
-              until={cooldownTime}
-              onFinish={onFinish}
-              size={16}
-              running={isCountingDown}
-              timeLabels={{}}
-              style={{ height: 16 }}
-              digitStyle={{ height: 16, backgroundColor: "transparent" }}
-              digitTxtStyle={{ color: theme.colors.card, lineHeight: 18 }}
-              timeToShow={["M", "S"]}
-              showSeparator
-              separatorStyle={{ color: theme.colors.card, lineHeight: 18 }}
-            />
+            <Text style={styles.text}>{deadline ? mmss : formatMMSS(cooldownTime)}</Text>
           ) : (
             <Text style={styles.text}>{i18n.t("diaryReflectionButtonText")}</Text>
           )}

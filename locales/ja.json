@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Re:Day",
+    "CFBundleName": "Re:Day"
+  },
+  "android": {
+    "app_name": "Re:Day"
+  }
+}

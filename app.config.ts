@@ -4,9 +4,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "Re:Day",
   slug: "re-day",
-  version: "1.1",
+  version: "1.3",
   orientation: "portrait",
-  icon: "./assets/images/icon.png",
   scheme: "reday",
   userInterfaceStyle: "automatic",
   experiments: {
@@ -19,6 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   ios: {
+    icon: "assets/icons/app.icon",
     supportsTablet: true,
     infoPlist: {
       CFBundleAllowMixedLocalizations: true,
@@ -30,7 +30,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: "./assets/images/adaptive-icon.png",
+      foregroundImage: "./assets/icons/adaptive-icon.png",
       backgroundColor: "#503B73",
     },
     edgeToEdgeEnabled: true,
@@ -39,24 +39,30 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   web: {
     bundler: "metro",
     output: "static",
-    favicon: "./assets/images/favicon.png",
+    favicon: "./assets/icons/favicon.png",
   },
   locales: {
-    ja: "./languages/japanese.json",
+    en: "./locales/en.json",
+    ja: "./locales/ja.json",
   },
   plugins: [
     "expo-router",
     [
       "expo-splash-screen",
       {
-        backgroundColor: "#4B367C",
-        image: "./assets/images/icon.png",
-        resizeMode: "contain",
+        backgroundColor: "#ffffff",
+        image: "./assets/icons/splash.png",
+        imageWidth: 125,
+        dark: {
+          image: "./assets/icons/splash.png",
+          backgroundColor: "#000000",
+        },
       },
     ],
     "expo-sqlite",
     "expo-localization",
     "expo-web-browser",
     "expo-mail-composer",
+    "expo-notifications"
   ],
 });

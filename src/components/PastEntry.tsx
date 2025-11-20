@@ -39,8 +39,10 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.md,
-    marginBottom: 10,
-    ...theme.shadows.light,
+    borderWidth: 0.5,
+    borderColor: 'gainsboro'
+    // marginBottom: 10,
+    // ...theme.shadows.light,
   },
   entryWrapper: {
     margin: 12,
