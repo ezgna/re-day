@@ -6,6 +6,7 @@ import OpenCalendarButton from "@/src/components/OpenCalendarButton";
 import SaveButton from "@/src/components/SaveButton";
 import { fetchEntries, insertEntry } from "@/src/database/db";
 import { Entry } from "@/src/database/types";
+import { useDraftStore } from "@/src/stores/useDraftStore";
 import { summarizeContent } from "@/utils/api";
 import { formatDashedDateToSlashed, getRandomDateContents } from "@/utils/date";
 import i18n from "@/utils/i18n";
@@ -13,13 +14,9 @@ import { theme } from "@/utils/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Button, Keyboard, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Keyboard, LayoutChangeEvent, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import Toast from "react-native-root-toast";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { useDraftStore } from "@/src/stores/useDraftStore";
-import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
-import Constants from "expo-constants";
 
 const STORAGE_KEY = "summary_cache";
 const DEADLINE_KEY = "reflectionCooldownDeadline";
@@ -168,109 +165,57 @@ const Index = () => {
     // or: setTimeout(() => setIsCountingDown(false), 0);
   }, []);
 
-  const [backHeaderHeight, setBackHeaderHeight] = useState(0);
-  const [backTextHeight, setBackTextHeight] = useState(0);
-  const [backButtonsHeight, setBackButtonsHeight] = useState(0);
-  const [backMinHeight, setBackMinHeight] = useState(500);
+  const MIN_BACK_HEIGHT = 400;
+  const [backMinHeight, setBackMinHeight] = useState(MIN_BACK_HEIGHT);
+  const backHeightFrame = React.useRef<number | null>(null);
+  const lastMeasuredBackHeight = React.useRef(MIN_BACK_HEIGHT);
 
   useEffect(() => {
     if (!responseData) {
-      setBackMinHeight(500);
-      return;
+      lastMeasuredBackHeight.current = MIN_BACK_HEIGHT;
+      setBackMinHeight(MIN_BACK_HEIGHT);
     }
-    const paddingBottom = theme.spacing.md; // cardInner の paddingBottom 相当
-    const computed = Math.ceil(backHeaderHeight + backTextHeight + backButtonsHeight + paddingBottom);
-    setBackMinHeight(computed);
-  }, [responseData, backHeaderHeight, backTextHeight, backButtonsHeight]);
+  }, [responseData]);
 
-  // Notifications.setNotificationHandler({
-  //   handleNotification: async () => ({
-  //     shouldPlaySound: false,
-  //     shouldSetBadge: false,
-  //     shouldShowBanner: true, // iOSの通知バナー
-  //     shouldShowList: true, // 通知センターにも載せる
-  //   }),
-  // });
+  const handleBackLayout = React.useCallback(
+    (event: LayoutChangeEvent) => {
+      if (!responseData) {
+        if (lastMeasuredBackHeight.current !== MIN_BACK_HEIGHT) {
+          lastMeasuredBackHeight.current = MIN_BACK_HEIGHT;
+          setBackMinHeight(MIN_BACK_HEIGHT);
+        }
+        return;
+      }
 
-  // async function registerForPushAsync() {
-  //   if (!Device.isDevice) return null;
+      if (backHeightFrame.current) {
+        cancelAnimationFrame(backHeightFrame.current);
+      }
 
-  // // Android 8+ はチャンネル必須
-  // if (Platform.OS === "android") {
-  //   await Notifications.setNotificationChannelAsync("default", {
-  //     name: "default",
-  //     importance: Notifications.AndroidImportance.MAX,
-  //     vibrationPattern: [0, 250, 250, 250],
-  //   });
-  // }
+      const { height } = event.nativeEvent.layout;
+      backHeightFrame.current = requestAnimationFrame(() => {
+        backHeightFrame.current = null;
+        const rounded = Math.max(MIN_BACK_HEIGHT, Math.ceil(height));
+        if (Math.abs(rounded - lastMeasuredBackHeight.current) >= 2) {
+          lastMeasuredBackHeight.current = rounded;
+          setBackMinHeight(rounded);
+        }
+      });
+    },
+    [responseData]
+  );
 
-  // 権限
-  //   const { status: init } = await Notifications.getPermissionsAsync();
-  //   let status = init;
-  //   if (init !== "granted") {
-  //     const req = await Notifications.requestPermissionsAsync();
-  //     status = req.status;
-  //   }
-  //   if (status !== "granted") return null;
-
-  //   // Expo Push Token（projectId を明示）
-  //   const projectId = (Constants as any)?.expoConfig?.extra?.eas?.projectId ?? (Constants as any)?.easConfig?.projectId;
-  //   const token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
-  //   return token;
-  // }
-
-  // const [token, setToken] = useState<string | null>(null);
-  // const [last, setLast] = useState<Notifications.Notification | null>(null);
-
-  // useEffect(() => {
-  //   registerForPushAsync().then(setToken);
-
-  //   const subRecv = Notifications.addNotificationReceivedListener((n) => {
-  //     setLast(n);
-  //   });
-  //   const subTap = Notifications.addNotificationResponseReceivedListener((r) => {
-  //     console.log("Tapped:", r);
-  //   });
-  //   return () => {
-  //     subRecv.remove();
-  //     subTap.remove();
-  //   };
-  // }, []);
-
-  // const scheduleLocal = async () => {
-  //   const trigger: Notifications.TimeIntervalTriggerInput = {
-  //     type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-  //     seconds: 5,
-  //     repeats: false,
-  //   };
-
-  //   const id = await Notifications.scheduleNotificationAsync({
-  //     content: { title: "LOCAL after 5s", body: "This is local." },
-  //     trigger,
-  //   });
-  //   console.log("Scheduled local id:", id);
-  // };
+  useEffect(() => {
+    return () => {
+      if (backHeightFrame.current) {
+        cancelAnimationFrame(backHeightFrame.current);
+      }
+    };
+  }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* <View>
-        <Text selectable style={{ fontWeight: "600", marginBottom: 8 }}>
-          ExpoPushToken:
-        </Text>
-        <Text selectable style={{ marginBottom: 16 }}>
-          {token ?? "(requesting...)"}
-        </Text>
+    <SafeAreaView style={styles.container} edges={["top"]}>
 
-        <Button title="Schedule local (5s)" onPress={scheduleLocal} />
-
-        <View style={{ marginTop: 24 }}>
-          <Text style={{ fontWeight: "600" }}>Last notification:</Text>
-          <Text>Title: {last?.request.content.title ?? "-"}</Text>
-          <Text>Body: {last?.request.content.body ?? "-"}</Text>
-        </View>
-      </View> */}
-
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 200 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 64 }}>
         {/* リフレクションボタン */}
         <View style={styles.reflectButtonContainer}>
           <DiaryReflectionButton
@@ -309,26 +254,19 @@ const Index = () => {
             </View>
 
             {/* BACK 面：影つきの箱ごと */}
-            <View style={[styles.cardShadow, { height: backMinHeight }]}>
+            <View style={[styles.cardShadow, { minHeight: backMinHeight }]} onLayout={handleBackLayout}>
               <View style={styles.back}>
                 {responseData ? (
                   <View style={styles.cardInner}>
-                    <View style={styles.cardHeader} onLayout={(e) => setBackHeaderHeight(e.nativeEvent.layout.height)}>
+                    <View style={styles.cardHeader}>
                       <Text style={styles.cardTitle} selectable>
                         {responseData.title}
                       </Text>
                       <FlipPressable onPress={() => setFlipped(!flipped)} />
                     </View>
                     <View>
-                      <TextInput
-                        value={responseData.summary}
-                        editable={false}
-                        multiline
-                        style={styles.cardText}
-                        selectionColor={theme.colors.selection}
-                        onContentSizeChange={(e) => setBackTextHeight(e.nativeEvent.contentSize.height)}
-                      />
-                      <View style={styles.buttonContainer} onLayout={(e) => setBackButtonsHeight(e.nativeEvent.layout.height)}>
+                      <TextInput value={responseData.summary} editable={false} multiline style={styles.cardText} selectionColor={theme.colors.selection} />
+                      <View style={styles.buttonContainer}>
                         <OpenCalendarButton onPress={openCalendar} />
                       </View>
                     </View>
@@ -367,7 +305,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
   },
   face: { flex: 1 },
-  back: { flex: 1 },
+  back: {},
   flipContainer: {
     flex: 1,
     marginTop: theme.spacing.md,
@@ -375,6 +313,7 @@ const styles = StyleSheet.create({
   cardShadow: {
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.md,
+    flexShrink: 0,
     ...theme.shadows.iosOnlyLight,
   },
 
