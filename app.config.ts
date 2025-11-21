@@ -7,7 +7,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: "1.3",
   orientation: "portrait",
   scheme: "reday",
-  userInterfaceStyle: "automatic",
+  userInterfaceStyle: "light",
   experiments: {
     typedRoutes: true,
   },
@@ -53,10 +53,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         backgroundColor: "#ffffff",
         image: "./assets/icons/splash.png",
         imageWidth: 125,
-        dark: {
-          image: "./assets/icons/splash.png",
-          backgroundColor: "#000000",
-        },
+        // dark: {
+        //   image: "./assets/icons/splash.png",
+        //   backgroundColor: "#000000",
+        // },
       },
     ],
     "expo-sqlite",

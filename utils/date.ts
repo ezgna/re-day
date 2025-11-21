@@ -64,3 +64,13 @@ export const addDaysLocal = (date: Date, days: number): Date => {
 };
 
 export const tomorrowLocal = (): Date => addDaysLocal(new Date(), 1);
+
+// 言語によって12/24時間表示を切り替える時刻フォーマッタ
+export const formatTimeByLocale = (date: Date, locale: string): string => {
+  const isJa = locale.startsWith("ja");
+  return date.toLocaleTimeString(isJa ? "ja-JP" : "en-US", {
+    hour: isJa ? "2-digit" : "numeric",
+    minute: "2-digit",
+    hour12: !isJa,
+  });
+};

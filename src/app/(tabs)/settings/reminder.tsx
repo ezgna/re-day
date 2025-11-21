@@ -1,6 +1,7 @@
 import ReminderService from "@/src/services/ReminderService";
 import { useReminderStore } from "@/src/stores/useReminderStore";
 import i18n from "@/utils/i18n";
+import { formatTimeByLocale } from "@/utils/date";
 import { theme } from "@/utils/theme";
 import { useFocusEffect } from "expo-router";
 import * as Notifications from "expo-notifications";
@@ -9,7 +10,11 @@ import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text
 import DateTimePicker, { DateTimePickerAndroid, DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { Plus, Trash2 } from "lucide-react-native";
 
-const formatTime = (hour: number, minute: number) => `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+const formatTime = (hour: number, minute: number, locale: string) => {
+  const d = new Date();
+  d.setHours(hour, minute, 0, 0);
+  return formatTimeByLocale(d, locale);
+};
 
 const ReminderScreen = () => {
   const { enabled, timeSlots, skipIfCompleted, setEnabled, setTimeSlots, setSkipIfCompleted, timezone } = useReminderStore();
@@ -18,6 +23,7 @@ const ReminderScreen = () => {
   const [tempDate, setTempDate] = React.useState<Date>(new Date());
   const animated = React.useRef(new Animated.Value(enabled ? 1 : 0)).current;
   const [contentHeight, setContentHeight] = React.useState(0);
+  const isDev = __DEV__;
 
   useFocusEffect(
     React.useCallback(() => {
@@ -130,7 +136,7 @@ const ReminderScreen = () => {
           <Text style={styles.sectionTitle}>{i18n.t("reminder.sectionTitle")}</Text>
 
           <View style={styles.rowBetween}>
-            <View>
+            <View style={{ flex: 1, paddingRight: theme.spacing.md }}>
               <Text style={styles.label}>{i18n.t("reminder.enabledLabel")}</Text>
               <Text style={styles.helper}>{i18n.t("reminder.enabledHint")}</Text>
             </View>
@@ -155,7 +161,10 @@ const ReminderScreen = () => {
               onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}
             >
               <View style={styles.timeHeader}>
-                <Text style={styles.label}>{i18n.t("reminder.timeSlotsLabel")}</Text>
+                <View style={{ flex: 1, paddingRight: theme.spacing.sm }}>
+                  <Text style={styles.label}>{i18n.t("reminder.timeSlotsLabel")}</Text>
+                  <Text style={styles.helper}>{i18n.t("reminder.timeSlotsHint")}</Text>
+                </View>
                 <Pressable onPress={addTimeSlot} style={styles.addButton}>
                   <Plus size={18} color={theme.colors.secondary} />
                   <Text style={styles.addButtonText}>{i18n.t("reminder.addTimeSlot")}</Text>
@@ -163,7 +172,8 @@ const ReminderScreen = () => {
               </View>
 
               {timeSlots.length === 0 ? (
-                <Text style={styles.helper}>{i18n.t("reminder.noSlot")}</Text>
+                // <Text style={styles.helper}>{i18n.t("reminder.noSlot")}</Text>
+                <></>
               ) : (
                 timeSlots.map((slot) => (
                   <Pressable
@@ -173,14 +183,14 @@ const ReminderScreen = () => {
                     disabled={!enabled}
                   >
                     <View>
-                      <Text style={styles.timeValue}>{formatTime(slot.hour, slot.minute)}</Text>
+                      <Text style={styles.timeValue}>{formatTime(slot.hour, slot.minute, i18n.locale)}</Text>
                       <Text style={styles.timeCaption}>{i18n.t("reminder.dailyCaption")}</Text>
                     </View>
                     <Pressable
                       onPress={() => removeTimeSlot(slot.id)}
                       style={[styles.iconButton, !enabled && { opacity: 0.4 }]}
                       disabled={!enabled}
-                      accessibilityLabel={i18n.t("reminder.deleteSlot", { time: formatTime(slot.hour, slot.minute) })}
+                      accessibilityLabel={i18n.t("reminder.deleteSlot", { time: formatTime(slot.hour, slot.minute, i18n.locale) })}
                     >
                       <Trash2 size={18} color={theme.colors.secondary} />
                     </Pressable>
@@ -196,11 +206,15 @@ const ReminderScreen = () => {
                 <Switch value={skipIfCompleted} onValueChange={handleSkipToggle} disabled={!enabled} />
               </View>
 
-              <Pressable onPress={sendTestNotification} style={[styles.testButton, !enabled && { opacity: 0.4 }]} disabled={!enabled}>
-                <Text style={styles.testButtonText}>{i18n.t("reminder.testButton")}</Text>
-              </Pressable>
+              {isDev ? (
+                <>
+                  <Pressable onPress={sendTestNotification} style={[styles.testButton, !enabled && { opacity: 0.4 }]} disabled={!enabled}>
+                    <Text style={styles.testButtonText}>{i18n.t("reminder.testButton")}</Text>
+                  </Pressable>
 
-              <Text style={styles.helper}>{i18n.t("reminder.timezoneLabel", { tz: timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone })}</Text>
+                  <Text style={styles.helper}>{i18n.t("reminder.timezoneLabel", { tz: timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone })}</Text>
+                </>
+              ) : null}
             </View>
           </Animated.View>
         </View>
@@ -290,7 +304,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.md,
     borderWidth: 1,
-    borderColor: theme.colors.secondary,
+    borderColor: theme.colors.border,
     shadowColor: "#000",
     shadowOpacity: 0.07,
     shadowRadius: 4,

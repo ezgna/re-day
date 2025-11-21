@@ -7,6 +7,11 @@ import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
 const REMINDER_CHANNEL_ID = "daily-reminder";
+const log = (...args: unknown[]) => {
+  if (__DEV__) {
+    console.log("[Reminder]", ...args);
+  }
+};
 
 const getDeviceTimezone = (): string => Intl.DateTimeFormat().resolvedOptions().timeZone ?? "UTC";
 
@@ -15,6 +20,7 @@ const ensurePermission = async (): Promise<boolean> => {
   if (status === "granted") return true;
 
   const request = await Notifications.requestPermissionsAsync();
+  log("ensurePermission", { status, requested: request.status });
   return request.status === "granted";
 };
 
@@ -33,18 +39,24 @@ const buildContent = (dateKey: string): Notifications.NotificationContentInput =
   sound: true,
 });
 
-const buildTrigger = (target: Date, timezone: string): Notifications.CalendarTriggerInput => ({
-  type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
-  channelId: REMINDER_CHANNEL_ID,
-  year: target.getFullYear(),
-  month: target.getMonth(),
-  day: target.getDate(),
-  hour: target.getHours(),
-  minute: target.getMinutes(),
-  second: 0,
-  repeats: false,
-  ...(Platform.OS === "ios" ? { timezone } : {}),
-});
+const buildTrigger = (target: Date, timezone: string): Notifications.NotificationTriggerInput => {
+  if (Platform.OS === "ios") {
+    return {
+      type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+      channelId: REMINDER_CHANNEL_ID,
+      year: target.getFullYear(),
+      month: target.getMonth(),
+      day: target.getDate(),
+      hour: target.getHours(),
+      minute: target.getMinutes(),
+      second: 0,
+      repeats: false,
+      timezone,
+    } as Notifications.CalendarTriggerInput;
+  }
+  // Android は Date オブジェクトで単発通知を予約する
+  return target;
+};
 
 const scheduleForDate = async (target: Date, slots: TimeSlot[], timezone: string): Promise<string[]> => {
   const requestDateKey = formatDateKey(target);
@@ -55,6 +67,7 @@ const scheduleForDate = async (target: Date, slots: TimeSlot[], timezone: string
     const slotDate = new Date(target);
     slotDate.setHours(slot.hour, slot.minute, 0, 0);
     if (slotDate.getTime() <= Date.now()) {
+      log("skip past slot", { dateKey: requestDateKey, hour: slot.hour, minute: slot.minute });
       continue; // 過去の時刻はスキップ
     }
 
@@ -64,6 +77,7 @@ const scheduleForDate = async (target: Date, slots: TimeSlot[], timezone: string
       trigger,
     });
     ids.push(id);
+    log("scheduled", { id, dateKey: requestDateKey, hour: slot.hour, minute: slot.minute, tz: timezone });
   }
 
   return ids;
@@ -95,6 +109,7 @@ const cancelPastDates = async () => {
 const ReminderService = {
   // アプリ起動時に権限確認・チャネル作成を実施
   async init() {
+    log("init start");
     const granted = await ensurePermission();
     if (!granted) return;
 
@@ -104,18 +119,24 @@ const ReminderService = {
     useReminderStore.getState().setTimezone(tz);
 
     await this.syncUpcoming();
+    log("init done");
   },
 
   // 今日〜指定日数分の通知を組み直す
   async syncUpcoming(daysAhead = 7) {
+    log("syncUpcoming start", { daysAhead });
     const { enabled, timeSlots, skipIfCompleted, setScheduledForDate, clearDate, setTimezone, timezone } = useReminderStore.getState();
     if (!enabled || timeSlots.length === 0) {
       await cancelAllKnown();
+      log("syncUpcoming stop: disabled or no slots");
       return;
     }
 
     const granted = await ensurePermission();
-    if (!granted) return;
+    if (!granted) {
+      log("syncUpcoming stop: permission denied");
+      return;
+    }
     await ensureAndroidChannel();
 
     await cancelPastDates();
@@ -123,6 +144,7 @@ const ReminderService = {
     const currentTz = getDeviceTimezone();
     if (timezone !== currentTz) {
       setTimezone(currentTz);
+      log("timezone updated", { currentTz });
     }
 
     const today = todayLocal();
@@ -137,6 +159,7 @@ const ReminderService = {
         const exists = await hasEntryForDate(target);
         if (exists) {
           await this.cancelForDate(dateKey);
+          log("skip today because entry exists", { dateKey });
           continue;
         }
       }
@@ -155,6 +178,7 @@ const ReminderService = {
     for (const key of extraKeys) {
       await this.cancelForDate(key);
     }
+    log("syncUpcoming done", { scheduledKeys: Array.from(touched) });
   },
 
   // 特定日付の予約を解除
@@ -163,6 +187,7 @@ const ReminderService = {
     const ids = scheduled[dateKey] ?? [];
     if (ids.length > 0) {
       await cancelList(ids);
+      log("cancelForDate", { dateKey, count: ids.length });
     }
     clearDate(dateKey);
   },
@@ -172,6 +197,7 @@ const ReminderService = {
     const key = formatDateKey(todayLocal());
     await this.cancelForDate(key);
     await this.syncUpcoming();
+    log("handleEntrySaved complete");
   },
 
   // AppState active 遷移時の同期
@@ -185,6 +211,7 @@ const ReminderService = {
       await cancelAllKnown();
       useReminderStore.getState().setTimezone(timezone);
       await this.syncUpcoming();
+      log("appForeground timezone changed", { timezone });
       return;
     }
 
@@ -193,15 +220,18 @@ const ReminderService = {
       const hasEntry = await hasEntryForDate(today);
       if (hasEntry) {
         await this.cancelForDate(formatDateKey(today));
+        log("appForeground cancelled today (entry exists)");
       }
     }
 
     await this.syncUpcoming();
+    log("appForeground sync done");
   },
 
   // 設定変更時に外部から呼ぶ
   async handleSettingsChange() {
     await this.syncUpcoming();
+    log("handleSettingsChange");
   },
 
   // 通知タップ時の遷移を登録
