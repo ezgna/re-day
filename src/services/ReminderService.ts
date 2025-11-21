@@ -39,24 +39,13 @@ const buildContent = (dateKey: string): Notifications.NotificationContentInput =
   sound: true,
 });
 
-const buildTrigger = (target: Date, timezone: string): Notifications.NotificationTriggerInput => {
-  if (Platform.OS === "ios") {
-    return {
-      type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
-      channelId: REMINDER_CHANNEL_ID,
-      year: target.getFullYear(),
-      month: target.getMonth(),
-      day: target.getDate(),
-      hour: target.getHours(),
-      minute: target.getMinutes(),
-      second: 0,
-      repeats: false,
-      timezone,
-    } as Notifications.CalendarTriggerInput;
-  }
-  // Android は Date オブジェクトで単発通知を予約する
-  return target;
-};
+// iOS / Android 共通で DATE トリガーを使い、絶対時刻で単発予約する
+const buildTrigger = (target: Date): Notifications.NotificationTriggerInput => ({
+  type: Notifications.SchedulableTriggerInputTypes.DATE,
+  date: target,
+  // Android では channelId が有効。iOS では無視されるが型的に安全なので付与する。
+  channelId: REMINDER_CHANNEL_ID,
+});
 
 const scheduleForDate = async (target: Date, slots: TimeSlot[], timezone: string): Promise<string[]> => {
   const requestDateKey = formatDateKey(target);
@@ -71,7 +60,7 @@ const scheduleForDate = async (target: Date, slots: TimeSlot[], timezone: string
       continue; // 過去の時刻はスキップ
     }
 
-    const trigger = buildTrigger(slotDate, timezone);
+    const trigger = buildTrigger(slotDate);
     const id = await Notifications.scheduleNotificationAsync({
       content: buildContent(requestDateKey),
       trigger,
@@ -239,7 +228,7 @@ const ReminderService = {
     return Notifications.addNotificationResponseReceivedListener((response) => {
       const data = response.notification.request.content.data as { type?: string };
       if (data?.type === "daily-reminder") {
-        router.push("/calendarview");
+        router.push("/");
       }
     });
   },
@@ -252,10 +241,18 @@ const ReminderService = {
     }
     await ensureAndroidChannel();
 
-    const trigger =
+    const trigger: Notifications.NotificationTriggerInput =
       Platform.OS === "android"
-        ? { seconds: 5, channelId: REMINDER_CHANNEL_ID }
-        : new Date(Date.now() + 5000); // iOS では date トリガーの方が 0 秒扱いになる挙動を回避しやすい
+        ? {
+            type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+            seconds: 5,
+            repeats: false,
+            channelId: REMINDER_CHANNEL_ID,
+          }
+        : {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: new Date(Date.now() + 5000),
+          };
 
     await Notifications.scheduleNotificationAsync({
       content: {

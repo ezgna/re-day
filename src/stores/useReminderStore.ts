@@ -30,7 +30,7 @@ type ReminderActions = {
 };
 
 const initialState: ReminderState = {
-  enabled: false,
+  enabled: true,
   timeSlots: [DEFAULT_SLOT],
   skipIfCompleted: true,
   scheduled: {},
@@ -72,7 +72,6 @@ export const useReminderStore = create<ReminderState & ReminderActions>()(
     })),
     {
       name: "reminder-settings",
-      version: 2,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         enabled: state.enabled,
@@ -81,13 +80,6 @@ export const useReminderStore = create<ReminderState & ReminderActions>()(
         scheduled: state.scheduled,
         timezone: state.timezone,
       }),
-      migrate: async (persisted, version) => {
-        const state = (persisted as ReminderState) ?? initialState;
-        if (version < 2 && (!state.timeSlots || state.timeSlots.length === 0)) {
-          state.timeSlots = [DEFAULT_SLOT];
-        }
-        return state;
-      },
     }
   )
 );
