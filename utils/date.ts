@@ -44,3 +44,23 @@ export const formatToLocalDateTimeString = (isoString: string): string => {
 export const formatDashedDateToSlashed = (dateString: string): string => {
   return dateString.replace(/-/g, "/");
 };
+
+// ローカルタイムゾーンの 0 時で日付キーを生成
+export const formatDateKey = (date: Date): string => formatToLocalDateString(date.toISOString());
+
+// 日付をローカル 0 時に正規化した Date を返す
+export const startOfLocalDay = (date: Date): Date => {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+export const todayLocal = (): Date => startOfLocalDay(new Date());
+
+export const addDaysLocal = (date: Date, days: number): Date => {
+  const d = startOfLocalDay(date);
+  d.setDate(d.getDate() + days);
+  return d;
+};
+
+export const tomorrowLocal = (): Date => addDaysLocal(new Date(), 1);

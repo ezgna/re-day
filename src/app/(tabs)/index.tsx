@@ -7,6 +7,7 @@ import SaveButton from "@/src/components/SaveButton";
 import { fetchEntries, insertEntry } from "@/src/database/db";
 import { Entry } from "@/src/database/types";
 import { useDraftStore } from "@/src/stores/useDraftStore";
+import ReminderService from "@/src/services/ReminderService";
 import { summarizeContent } from "@/utils/api";
 import { formatDashedDateToSlashed, getRandomDateContents } from "@/utils/date";
 import i18n from "@/utils/i18n";
@@ -108,6 +109,11 @@ const Index = () => {
       clearDraft();
       await loadEntries();
       Toast.show(i18n.t("save_success"), { position: Toast.positions.CENTER });
+      try {
+        await ReminderService.handleEntrySaved();
+      } catch (reminderError) {
+        console.error("ReminderService.handleEntrySaved failed", reminderError);
+      }
     } catch (error) {
       console.error(error);
     }

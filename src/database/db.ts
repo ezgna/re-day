@@ -1,4 +1,5 @@
 import i18n from "@/utils/i18n";
+import { startOfLocalDay } from "@/utils/date";
 import * as SQLite from "expo-sqlite";
 import { Alert } from "react-native";
 import { Entry } from "./types";
@@ -73,4 +74,21 @@ export const updateEntry = async (id: number, content: string) => {
   const conn = await getDB();
 
   await conn.runAsync(`UPDATE entries SET content = ? WHERE id = ?`, [content, id]);
+};
+
+// 指定日のエントリが存在するかローカル日付境界で判定
+export const hasEntryForDate = async (target: Date): Promise<boolean> => {
+  const conn = await getDB();
+
+  const start = startOfLocalDay(target);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  const result = await conn.getFirstAsync<{ count: number }>(
+    `SELECT COUNT(*) as count FROM entries WHERE created_at >= ? AND created_at < ?`,
+    start.toISOString(),
+    end.toISOString()
+  );
+
+  return (result?.count ?? 0) > 0;
 };

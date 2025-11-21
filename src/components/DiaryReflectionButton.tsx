@@ -1,9 +1,8 @@
 import i18n from "@/utils/i18n";
 import { theme } from "@/utils/theme";
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
-import { useEffect, useState } from "react";
 import { useCountdown, formatMMSS } from "@/src/hooks/useCountdown";
 
 interface Props {
