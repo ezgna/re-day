@@ -10,8 +10,8 @@ export default function TabLayout() {
   const androidTabsAppearance = Platform.select<Partial<NativeTabsProps>>({
     android: {
       backgroundColor: colors.card,
-      iconColor: { default: colors.mutedForeground, selected: colors.primary },
-      indicatorColor: colors.primary,
+      iconColor: { default: colors.mutedForeground, selected: colors.onPrimary },
+      indicatorColor: colors.selection,
       labelVisibilityMode: "selected",
       labelStyle: {
         default: { color: colors.mutedForeground },
@@ -25,17 +25,17 @@ export default function TabLayout() {
     <NativeTabs {...androidTabsAppearance}>
       <NativeTabs.Trigger name="index">
         <Label>{i18n.t("reflect")}</Label>
-        <Icon sf={"book"} androidSrc={require("@/assets/tabs/edit_note_24dp_5A6475_FILL0_wght400_GRAD0_opsz24.png")} />
+        <Icon sf={"book"} androidSrc={require("../../../assets/tabs/edit_note_24dp_5A6475_FILL0_wght400_GRAD0_opsz24.png")} />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="calendarview">
         <Label>{i18n.t("calendar")}</Label>
-        <Icon sf={"calendar"} androidSrc={require("@/assets/tabs/calendar_month_24dp_5A6475_FILL0_wght400_GRAD0_opsz24.png")} />
+        <Icon sf={"calendar"} androidSrc={require("../../../assets/tabs/calendar_month_24dp_5A6475_FILL0_wght400_GRAD0_opsz24.png")} />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="settings">
         <Label>{i18n.t("settings")}</Label>
-        <Icon sf={"gear"} androidSrc={require("@/assets/tabs/settings_24dp_5A6475_FILL0_wght400_GRAD0_opsz24.png")} />
+        <Icon sf={"gear"} androidSrc={require("../../../assets/tabs/settings_24dp_5A6475_FILL0_wght400_GRAD0_opsz24.png")} />
       </NativeTabs.Trigger>
     </NativeTabs>
   );
