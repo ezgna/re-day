@@ -15,7 +15,7 @@ import { theme } from "@/utils/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Keyboard, LayoutChangeEvent, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Keyboard, LayoutChangeEvent, Platform, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import Toast from "react-native-root-toast";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -220,8 +220,16 @@ const Index = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 64 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingBottom: Platform.select({
+            android: 100 + insets.bottom,
+            ios: insets.bottom + 60,
+          }),
+        }}
+      >
         {/* リフレクションボタン */}
         <View style={styles.reflectButtonContainer}>
           <DiaryReflectionButton

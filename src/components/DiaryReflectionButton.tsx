@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
   // 外枠のグラデ（縁取り）
   frameGradient: {
     borderRadius: 32,
+    overflow: "hidden", // Android でも角丸を適用させる
   },
 
   // 本体の塗り
@@ -88,6 +89,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
+    borderRadius: 32,
   },
 
   text: {

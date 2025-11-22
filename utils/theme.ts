@@ -6,6 +6,8 @@ export const theme = {
     card: "#FFFFFF",
     primary: "#2F3136",
     secondary: "#585B63", // primaryよりちょっと薄め
+    mutedForeground: "#8A8F98",
+    onPrimary: "#FFFFFF",
     border: "#C5CECD",
     placeholder: "#A0A0A0",
     icon: "#888",

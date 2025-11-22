@@ -29,17 +29,19 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: "com.ezgna.re-day",
   },
   android: {
+    ...(config.android || {}),
     adaptiveIcon: {
       foregroundImage: "./assets/icons/adaptive-icon.png",
-      backgroundColor: "#503B73",
+      backgroundColor: "#ffffff",
     },
+    permissions: [...(config.android?.permissions ?? []), "android.permission.SCHEDULE_EXACT_ALARM"],
     edgeToEdgeEnabled: true,
     package: "com.ezgna.reday",
   },
   web: {
     bundler: "metro",
     output: "static",
-    favicon: "./assets/icons/favicon.png",
+    // favicon: "./assets/icons/favicon.png",
   },
   locales: {
     en: "./locales/en.json",
@@ -63,6 +65,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-localization",
     "expo-web-browser",
     "expo-mail-composer",
-    "expo-notifications"
+    "expo-notifications",
   ],
 });

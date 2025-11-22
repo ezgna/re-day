@@ -8,7 +8,7 @@ import { theme } from "@/utils/theme";
 import { router, useFocusEffect } from "expo-router";
 import { useLocalSearchParams } from "expo-router/build/hooks";
 import React, { useCallback, useEffect, useState } from "react";
-import { Keyboard, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Keyboard, Platform, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { MarkingProps } from "react-native-calendars/src/calendar/day/marking";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -139,7 +139,14 @@ const CalendarView = () => {
         ) : null}
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingTop: theme.spacing.sm, paddingBottom: insets.bottom + 64, gap: theme.spacing.sm }}
+          contentContainerStyle={{
+            paddingTop: theme.spacing.sm,
+            paddingBottom: Platform.select({
+              android: 100 + insets.bottom,
+              ios: insets.bottom + 64,
+            }),
+            gap: theme.spacing.sm,
+          }}
         >
           <PastEntry entries={filteredEntries} onDelete={handleDelete} onEdit={handleEdit} />
         </ScrollView>
