@@ -4,7 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "Re:Day",
   slug: "re-day",
-  version: "1.3",
+  version: "1.4",
   orientation: "portrait",
   scheme: "reday",
   userInterfaceStyle: "light",

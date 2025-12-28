@@ -7,6 +7,7 @@ import { Stack } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import { AppState, AppStateStatus, Platform } from "react-native";
 import { RootSiblingParent } from "react-native-root-siblings";
+import { StatusBar } from "expo-status-bar";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -46,7 +47,7 @@ export default function RootLayout() {
       }
     };
   }, []);
-  
+
   return (
     <RootSiblingParent>
       <ActionSheetProvider>
@@ -54,6 +55,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         </Stack>
       </ActionSheetProvider>
+      <StatusBar style="dark" backgroundColor="#ffffff" />
     </RootSiblingParent>
   );
 }
