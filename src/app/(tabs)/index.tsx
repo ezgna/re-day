@@ -2,9 +2,11 @@ import DiaryReflectionButton from "@/src/components/DiaryReflectionButton";
 import FeatureCarousel from "@/src/components/FeatureCarousel";
 import FlipCard from "@/src/components/FlipCardReanimated";
 import FlipPressable from "@/src/components/FlipPressable";
+import CancelButton from "@/src/components/CancelButton";
 import OpenCalendarButton from "@/src/components/OpenCalendarButton";
+import PastEntryItem from "@/src/components/PastEntryItem";
 import SaveButton from "@/src/components/SaveButton";
-import { fetchEntries, insertEntry } from "@/src/database/db";
+import { deleteEntry, fetchEntries, insertEntry, updateEntry } from "@/src/database/db";
 import { Entry } from "@/src/database/types";
 import { useDraftStore } from "@/src/stores/useDraftStore";
 import ReminderService from "@/src/services/ReminderService";
@@ -13,15 +15,17 @@ import { formatDashedDateToSlashed, getRandomDateContents } from "@/utils/date";
 import i18n from "@/utils/i18n";
 import { theme } from "@/utils/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
+import { FlashList } from "@shopify/flash-list";
+import { router, useFocusEffect } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Keyboard, LayoutChangeEvent, Platform, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Keyboard, Platform, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import Toast from "react-native-root-toast";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const STORAGE_KEY = "summary_cache";
 const DEADLINE_KEY = "reflectionCooldownDeadline";
 const COOLDOWN_SEC = 60 * 5;
+const FLIP_FRONT_HEIGHT = 400;
 
 const Index = () => {
   const insets = useSafeAreaInsets();
@@ -39,6 +43,9 @@ const Index = () => {
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [cooldownTime, setCooldownTime] = useState(COOLDOWN_SEC);
   const [flipped, setFlipped] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingContent, setEditingContent] = useState("");
+  const listRef = React.useRef<FlashList<Entry> | null>(null);
 
   // placeholder はマウント時＋言語変化時のみ決定
   useEffect(() => {
@@ -53,24 +60,20 @@ const Index = () => {
     setFlipped(!!responseData);
   }, [responseData]);
 
-  const loadEntries = async () => {
+  const loadEntries = React.useCallback(async () => {
     try {
       const data = await fetchEntries();
       setEntries(data);
     } catch (error) {
       console.error(error);
     }
-  };
-
-  useEffect(() => {
-    (async () => {
-      try {
-        await loadEntries();
-      } catch (e) {
-        console.error(e);
-      }
-    })();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadEntries();
+    }, [loadEntries])
+  );
 
   const loadCache = async () => {
     try {
@@ -117,6 +120,50 @@ const Index = () => {
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      if (editingId === id) {
+        setEditingId(null);
+        setEditingContent("");
+      }
+      await deleteEntry(id);
+      await loadEntries();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleEdit = (id: number, content: string) => {
+    setEditingId(id);
+    setEditingContent(content);
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToOffset({ offset: 0, animated: true });
+    });
+  };
+
+  const handleUpdate = async () => {
+    if (!editingId) return;
+    const trimmed = editingContent.trim();
+    if (!trimmed) {
+      Toast.show(i18n.t("content_cannot_be_empty"), { position: Toast.positions.CENTER });
+      return;
+    }
+    try {
+      await updateEntry(editingId, trimmed);
+      setEditingId(null);
+      setEditingContent("");
+      await loadEntries();
+      Toast.show(i18n.t("save_success"), { position: Toast.positions.CENTER });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setEditingContent("");
   };
 
   const openCalendar = () => {
@@ -171,142 +218,136 @@ const Index = () => {
     // or: setTimeout(() => setIsCountingDown(false), 0);
   }, []);
 
-  const MIN_BACK_HEIGHT = 400;
-  const [backMinHeight, setBackMinHeight] = useState(MIN_BACK_HEIGHT);
-  const backHeightFrame = React.useRef<number | null>(null);
-  const lastMeasuredBackHeight = React.useRef(MIN_BACK_HEIGHT);
-
-  useEffect(() => {
-    if (!responseData) {
-      lastMeasuredBackHeight.current = MIN_BACK_HEIGHT;
-      setBackMinHeight(MIN_BACK_HEIGHT);
-    }
-  }, [responseData]);
-
-  const handleBackLayout = React.useCallback(
-    (event: LayoutChangeEvent) => {
-      if (!responseData) {
-        if (lastMeasuredBackHeight.current !== MIN_BACK_HEIGHT) {
-          lastMeasuredBackHeight.current = MIN_BACK_HEIGHT;
-          setBackMinHeight(MIN_BACK_HEIGHT);
-        }
-        return;
-      }
-
-      if (backHeightFrame.current) {
-        cancelAnimationFrame(backHeightFrame.current);
-      }
-
-      const { height } = event.nativeEvent.layout;
-      backHeightFrame.current = requestAnimationFrame(() => {
-        backHeightFrame.current = null;
-        const rounded = Math.max(MIN_BACK_HEIGHT, Math.ceil(height));
-        if (Math.abs(rounded - lastMeasuredBackHeight.current) >= 2) {
-          lastMeasuredBackHeight.current = rounded;
-          setBackMinHeight(rounded);
-        }
-      });
-    },
-    [responseData]
-  );
-
-  useEffect(() => {
-    return () => {
-      if (backHeightFrame.current) {
-        cancelAnimationFrame(backHeightFrame.current);
-      }
-    };
-  }, []);
-
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          flexGrow: 1,
-          paddingBottom: Platform.select({
-            android: 100 + insets.bottom,
-            ios: insets.bottom + 60,
-          }),
-        }}
-      >
-        {/* リフレクションボタン */}
-        <View style={styles.reflectButtonContainer}>
-          <DiaryReflectionButton
-            onPress={handleGenerateReflection}
-            loading={loading}
-            cooldownTime={cooldownTime}
-            isCountingDown={isCountingDown}
-            onFinish={handleCountDownFinish}
-          />
-        </View>
-        {/* 入力 */}
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder={placeholder}
-            placeholderTextColor={theme.colors.placeholder}
-            value={content}
-            onChangeText={setContent} // ★ Zustand に書き込むだけ
-            multiline
-            onBlur={() => Keyboard.dismiss()}
-          />
-          <View style={styles.buttonContainer}>
-            <SaveButton onPress={() => handleInsert(content)} />
-          </View>
-        </View>
-
-        {/* カード（下段） */}
-        <View style={{ flex: 1 }}>
-          <FlipCard flip={flipped} perspective={1000} flipHorizontal flipVertical={false} style={styles.flipContainer}>
-            {/* FRONT 面：影つきの箱ごと */}
-            <View style={[styles.cardShadow, { height: 400 }]}>
-              <View style={styles.face}>
-                <FlipPressable onPress={() => setFlipped(!flipped)} style={{ alignSelf: "flex-end", paddingRight: theme.spacing.md, paddingTop: theme.spacing.md }} />
-                <FeatureCarousel />
+    <View style={styles.container}>
+      <View style={styles.listContainer}>
+        <FlashList
+          ref={listRef}
+          data={entries}
+          keyExtractor={(item) => String(item.id)}
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={() => <View style={{ height: theme.spacing.sm }} />}
+          ListHeaderComponent={
+            <View style={{ paddingBottom: theme.spacing.md }}>
+              {/* リフレクションボタン */}
+              <View style={styles.reflectButtonContainer}>
+                <DiaryReflectionButton
+                  onPress={handleGenerateReflection}
+                  loading={loading}
+                  cooldownTime={cooldownTime}
+                  isCountingDown={isCountingDown}
+                  onFinish={handleCountDownFinish}
+                />
               </View>
-            </View>
+              {/* 入力 */}
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder={placeholder}
+                  placeholderTextColor={theme.colors.placeholder}
+                  value={content}
+                  onChangeText={setContent} // ★ Zustand に書き込むだけ
+                  multiline
+                  onBlur={() => Keyboard.dismiss()}
+                />
+                <View style={styles.buttonContainer}>
+                  <SaveButton onPress={() => handleInsert(content)} />
+                </View>
+              </View>
 
-            {/* BACK 面：影つきの箱ごと */}
-            <View style={[styles.cardShadow, { minHeight: backMinHeight }]} onLayout={handleBackLayout}>
-              <View style={styles.back}>
-                {responseData ? (
-                  <View style={styles.cardInner}>
-                    <View style={styles.cardHeader}>
-                      <Text style={styles.cardTitle} selectable>
-                        {responseData.title}
-                      </Text>
-                      <FlipPressable onPress={() => setFlipped(!flipped)} />
-                    </View>
-                    <View>
-                      <TextInput value={responseData.summary} editable={false} multiline style={styles.cardText} selectionColor={theme.colors.selection} />
-                      <View style={styles.buttonContainer}>
-                        <OpenCalendarButton onPress={openCalendar} />
+              {/* カード（使い方説明/AI生成振り返り） */}
+              <FlipCard
+                flip={flipped}
+                perspective={1000}
+                flipHorizontal
+                flipVertical={false}
+                style={[styles.flipContainer, { height: FLIP_FRONT_HEIGHT }]}
+              >
+                {/* FRONT 面：影つきの箱ごと */}
+                <View style={[styles.cardShadow, { height: FLIP_FRONT_HEIGHT }]}>
+                  <View style={styles.face}>
+                    <FlipPressable onPress={() => setFlipped(!flipped)} style={{ alignSelf: "flex-end", paddingRight: theme.spacing.md, paddingTop: theme.spacing.md }} />
+                    <FeatureCarousel />
+                  </View>
+                </View>
+
+                {/* BACK 面：影つきの箱ごと */}
+                <View style={[styles.cardShadow, { height: FLIP_FRONT_HEIGHT }]}>
+                  <View style={styles.back}>
+                    {responseData ? (
+                      <View style={styles.cardInner}>
+                        <View style={styles.cardHeader}>
+                          <Text style={styles.cardTitle} selectable>
+                            {responseData.title}
+                          </Text>
+                          <FlipPressable onPress={() => setFlipped(!flipped)} />
+                        </View>
+                        <View style={styles.backBody}>
+                          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} nestedScrollEnabled>
+                            <Text style={styles.cardText} selectable>
+                              {responseData.summary}
+                            </Text>
+                          </ScrollView>
+                        </View>
+                        <View style={styles.buttonContainer}>
+                          <OpenCalendarButton onPress={openCalendar} />
+                        </View>
                       </View>
+                    ) : (
+                      <View style={styles.cardInner}>
+                        <View style={styles.cardHeader}>
+                          <Text style={{ fontSize: 20, fontWeight: 600 }}>{i18n.t("sample_response")}</Text>
+                          <FlipPressable onPress={() => setFlipped(!flipped)} />
+                        </View>
+                        <Text style={[styles.cardTitle, { marginBottom: theme.spacing.md }]}>{i18n.t("reflection.title")}</Text>
+                        <View style={styles.backBody}>
+                          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} nestedScrollEnabled>
+                            {(i18n.t("reflection.overview", { returnObjects: true }) as string[]).map((line, index) => (
+                              <Text key={index} style={styles.cardText} selectable>
+                                {line === "" ? " " : line}
+                              </Text>
+                            ))}
+                          </ScrollView>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              </FlipCard>
+
+              {/* 編集（カレンダー画面と同様の体験に合わせてヘッダーに置く） */}
+              {editingId ? (
+                <View style={styles.editorCard}>
+                  <View style={styles.editorInner}>
+                    <TextInput style={styles.editorInput} value={editingContent} onChangeText={setEditingContent} multiline onBlur={() => Keyboard.dismiss()} />
+                    <View style={styles.editorButtons}>
+                      <CancelButton onPress={handleCancel} />
+                      <SaveButton onPress={handleUpdate} />
                     </View>
                   </View>
-                ) : (
-                  <View style={styles.cardInner}>
-                    <View style={styles.cardHeader}>
-                      <Text style={{ fontSize: 20, fontWeight: 600 }}>{i18n.t("sample_response")}</Text>
-                      <FlipPressable onPress={() => setFlipped(!flipped)} />
-                    </View>
-                    <View>
-                      <Text style={[styles.cardTitle, { marginBottom: theme.spacing.md }]}>{i18n.t("reflection.title")}</Text>
-                      {(i18n.t("reflection.overview", { returnObjects: true }) as string[]).map((line, index) => (
-                        <Text key={index} style={styles.cardText}>
-                          {line === "" ? " " : line}
-                        </Text>
-                      ))}
-                    </View>
-                  </View>
-                )}
-              </View>
+                </View>
+              ) : null}
             </View>
-          </FlipCard>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>{i18n.t("noRecords")}</Text>
+            </View>
+          }
+          renderItem={({ item }) => <PastEntryItem entry={item} onDelete={handleDelete} onEdit={handleEdit} />}
+          contentContainerStyle={{
+            paddingTop: Platform.select({
+              android: insets.top,
+              ios: insets.top,
+            }),
+            paddingBottom: Platform.select({
+              android: 100 + insets.bottom,
+              ios: insets.bottom + 60,
+            }),
+          }}
+        />
+      </View>
+    </View>
   );
 };
 
@@ -318,10 +359,12 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
     paddingHorizontal: theme.spacing.md,
   },
-  face: { flex: 1 },
-  back: {},
-  flipContainer: {
+  listContainer: {
     flex: 1,
+  },
+  face: { flex: 1 },
+  back: { flex: 1 },
+  flipContainer: {
     marginTop: theme.spacing.md,
   },
   cardShadow: {
@@ -334,6 +377,7 @@ const styles = StyleSheet.create({
   cardInner: {
     paddingHorizontal: theme.spacing.md,
     paddingBottom: theme.spacing.md,
+    flex: 1,
   },
   cardHeader: {
     flexDirection: "row",
@@ -351,6 +395,10 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     lineHeight: 24,
     padding: 0,
+  },
+  backBody: {
+    flex: 1,
+    paddingBottom: theme.spacing.sm,
   },
   inputContainer: {
     paddingVertical: theme.spacing.sm,
@@ -373,5 +421,36 @@ const styles = StyleSheet.create({
   reflectButtonContainer: {
     marginBottom: theme.spacing.md,
     ...theme.shadows.light,
+  },
+  editorCard: {
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.md,
+    marginTop: theme.spacing.sm,
+    borderWidth: 1,
+    borderColor: "gainsboro",
+  },
+  editorInner: {
+    borderRadius: theme.radius.md,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+  },
+  editorInput: {
+    fontSize: 16,
+    color: theme.colors.secondary,
+    maxHeight: 120,
+    minHeight: 40,
+  },
+  editorButtons: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    marginTop: theme.spacing.xs,
+  },
+  emptyContainer: {
+    paddingVertical: theme.spacing.md,
+  },
+  emptyText: {
+    color: theme.colors.secondary,
+    fontSize: 14,
   },
 });
