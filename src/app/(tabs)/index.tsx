@@ -6,6 +6,7 @@ import CancelButton from "@/src/components/CancelButton";
 import OpenCalendarButton from "@/src/components/OpenCalendarButton";
 import PastEntryItem from "@/src/components/PastEntryItem";
 import SaveButton from "@/src/components/SaveButton";
+import NativeAdCard from "@/src/components/ads/NativeAdCard";
 import { deleteEntry, fetchEntries, insertEntry, updateEntry } from "@/src/database/db";
 import { Entry } from "@/src/database/types";
 import { useDraftStore } from "@/src/stores/useDraftStore";
@@ -219,8 +220,36 @@ const Index = () => {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.listContainer}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      {/* 固定ヘッダー（ここはスクロールさせない） */}
+      <View style={styles.fixedHeader}>
+        <View style={styles.reflectButtonContainer}>
+          <DiaryReflectionButton
+            onPress={handleGenerateReflection}
+            loading={loading}
+            cooldownTime={cooldownTime}
+            isCountingDown={isCountingDown}
+            onFinish={handleCountDownFinish}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder={placeholder}
+            placeholderTextColor={theme.colors.placeholder}
+            value={content}
+            onChangeText={setContent} // ★ Zustand に書き込むだけ
+            multiline
+            onBlur={() => Keyboard.dismiss()}
+          />
+          <View style={styles.buttonContainer}>
+            <SaveButton onPress={() => handleInsert(content)} />
+          </View>
+        </View>
+      </View>
+
+      {/* スクロール領域（ここだけスクロールする） */}
+      <View style={styles.scrollArea}>
         <FlashList
           ref={listRef}
           data={entries}
@@ -228,33 +257,7 @@ const Index = () => {
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={{ height: theme.spacing.sm }} />}
           ListHeaderComponent={
-            <View style={{ paddingBottom: theme.spacing.md }}>
-              {/* リフレクションボタン */}
-              <View style={styles.reflectButtonContainer}>
-                <DiaryReflectionButton
-                  onPress={handleGenerateReflection}
-                  loading={loading}
-                  cooldownTime={cooldownTime}
-                  isCountingDown={isCountingDown}
-                  onFinish={handleCountDownFinish}
-                />
-              </View>
-              {/* 入力 */}
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.input}
-                  placeholder={placeholder}
-                  placeholderTextColor={theme.colors.placeholder}
-                  value={content}
-                  onChangeText={setContent} // ★ Zustand に書き込むだけ
-                  multiline
-                  onBlur={() => Keyboard.dismiss()}
-                />
-                <View style={styles.buttonContainer}>
-                  <SaveButton onPress={() => handleInsert(content)} />
-                </View>
-              </View>
-
+            <View style={styles.scrollHeader}>
               {/* カード（使い方説明/AI生成振り返り） */}
               <FlipCard
                 flip={flipped}
@@ -315,7 +318,9 @@ const Index = () => {
                 </View>
               </FlipCard>
 
-              {/* 編集（カレンダー画面と同様の体験に合わせてヘッダーに置く） */}
+              <NativeAdCard />
+
+              {/* 編集（スクロール領域の先頭側に表示） */}
               {editingId ? (
                 <View style={styles.editorCard}>
                   <View style={styles.editorInner}>
@@ -336,10 +341,6 @@ const Index = () => {
           }
           renderItem={({ item }) => <PastEntryItem entry={item} onDelete={handleDelete} onEdit={handleEdit} />}
           contentContainerStyle={{
-            paddingTop: Platform.select({
-              android: insets.top,
-              ios: insets.top,
-            }),
             paddingBottom: Platform.select({
               android: 100 + insets.bottom,
               ios: insets.bottom + 60,
@@ -359,13 +360,19 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
     paddingHorizontal: theme.spacing.md,
   },
-  listContainer: {
+  fixedHeader: {
+    paddingBottom: theme.spacing.xs,
+  },
+  scrollArea: {
     flex: 1,
+  },
+  scrollHeader: {
+    paddingBottom: 12,
   },
   face: { flex: 1 },
   back: { flex: 1 },
   flipContainer: {
-    marginTop: theme.spacing.md,
+    marginTop: theme.spacing.sm,
   },
   cardShadow: {
     backgroundColor: theme.colors.card,
@@ -419,7 +426,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   reflectButtonContainer: {
-    marginBottom: theme.spacing.md,
+    marginBottom: 12,
     ...theme.shadows.light,
   },
   editorCard: {

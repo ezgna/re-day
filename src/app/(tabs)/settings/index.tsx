@@ -4,12 +4,14 @@ import * as Application from "expo-application";
 import * as Device from "expo-device";
 import * as MailComposer from "expo-mail-composer";
 import { router } from "expo-router";
-import { BookCheck, Bell, Mails, ShieldCheck } from "lucide-react-native";
+import { Bell, BookCheck, Mails, ShieldCheck } from "lucide-react-native";
 import React from "react";
 import { Alert, Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Settings = () => {
+  const insets = useSafeAreaInsets();
+
   const openSupportMail = async () => {
     const isAvailable = await MailComposer.isAvailableAsync();
     if (!isAvailable) {
@@ -61,34 +63,31 @@ const Settings = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={{ flex: 1 }}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={styles.optionContainer}>
+        <Pressable onPress={() => router.push("/(tabs)/settings/reminder")} style={styles.option}>
+          <Bell size={28} color="dimgray" />
+          <Text style={styles.optionText}>{i18n.t("reminder.openScreenLabel")}</Text>
+        </Pressable>
 
-        <View style={[styles.optionContainer, { marginTop: theme.spacing.md }]}>
-          <Pressable onPress={() => router.push("/(tabs)/settings/reminder")} style={styles.option}>
-            <Bell size={28} color="dimgray" />
-            <Text style={styles.optionText}>{i18n.t("reminder.openScreenLabel")}</Text>
+        <Pressable onPress={openSupportMail} style={styles.option}>
+          <Mails size={28} color="dimgray" />
+          <Text style={styles.optionText}>{i18n.t("contact")}</Text>
+        </Pressable>
+
+        <Pressable onPress={openPrivacyPolicy} style={styles.option}>
+          <ShieldCheck size={28} color="dimgray" />
+          <Text style={styles.optionText}>{i18n.t("privacy_policy")}</Text>
+        </Pressable>
+
+        {Platform.OS === "ios" && (
+          <Pressable onPress={openTermsOfUse} style={[styles.option, { borderBottomWidth: 0 }]}>
+            <BookCheck size={28} color="dimgray" />
+            <Text style={styles.optionText}>{i18n.t("terms_of_use")}</Text>
           </Pressable>
-
-          <Pressable onPress={openSupportMail} style={styles.option}>
-            <Mails size={28} color="dimgray" />
-            <Text style={styles.optionText}>{i18n.t("contact")}</Text>
-          </Pressable>
-
-          <Pressable onPress={openPrivacyPolicy} style={styles.option}>
-            <ShieldCheck size={28} color="dimgray" />
-            <Text style={styles.optionText}>{i18n.t("privacy_policy")}</Text>
-          </Pressable>
-
-          {Platform.OS === "ios" && (
-            <Pressable onPress={openTermsOfUse} style={[styles.option, { borderBottomWidth: 0 }]}>
-              <BookCheck size={28} color="dimgray" />
-              <Text style={styles.optionText}>{i18n.t("terms_of_use")}</Text>
-            </Pressable>
-          )}
-        </View>
+        )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -8,6 +8,9 @@ import React, { useEffect, useRef } from "react";
 import { AppState, AppStateStatus, Platform } from "react-native";
 import { RootSiblingParent } from "react-native-root-siblings";
 import { StatusBar } from "expo-status-bar";
+import mobileAds from "react-native-google-mobile-ads";
+import { getTrackingPermissionsAsync, PermissionStatus, requestTrackingPermissionsAsync } from "expo-tracking-transparency";
+import { selectSetNpa, useAdsConsentStore } from "@/src/stores/useAdsConsentStore";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -24,6 +27,7 @@ export default function RootLayout() {
   i18n.locale = ["ja", "en"].includes(deviceLanguage) ? deviceLanguage : "en";
 
   const appState = useRef<AppStateStatus>(AppState.currentState);
+  const setNpa = useAdsConsentStore(selectSetNpa);
 
   useEffect(() => {
     let responseSubscription: Notifications.Subscription | undefined;
@@ -47,6 +51,33 @@ export default function RootLayout() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      if (Platform.OS === "ios") {
+        let { status: trackingStatus } = await getTrackingPermissionsAsync();
+        if (trackingStatus === PermissionStatus.UNDETERMINED) {
+          const req = await requestTrackingPermissionsAsync();
+          trackingStatus = req.status;
+        }
+
+        const npa = trackingStatus !== PermissionStatus.GRANTED;
+        setNpa(npa);
+      }
+
+      await mobileAds()
+        .initialize()
+        .then(() => {
+          // preloadRewarded();
+        });
+
+      if (__DEV__) {
+        try {
+          // await mobileAds().openAdInspector();
+        } catch {}
+      }
+    })();
+  }, [setNpa]);
 
   return (
     <RootSiblingParent>
