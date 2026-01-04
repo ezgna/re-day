@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollHeader: {
-    paddingBottom: 12,
+    paddingBottom: 8,
   },
   face: { flex: 1 },
   back: { flex: 1 },
@@ -378,9 +378,10 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.md,
     flexShrink: 0,
-    ...theme.shadows.iosOnlyLight,
+    borderColor: 'gainsboro',
+    borderWidth: 0.5,
+    // ...theme.shadows.iosOnlyLight,
   },
-
   cardInner: {
     paddingHorizontal: theme.spacing.md,
     paddingBottom: theme.spacing.md,

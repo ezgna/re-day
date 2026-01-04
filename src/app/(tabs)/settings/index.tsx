@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.md,
     paddingHorizontal: theme.spacing.md,
-    ...theme.shadows.medium,
+    ...theme.shadows.light,
   },
   option: {
     flexDirection: "row",

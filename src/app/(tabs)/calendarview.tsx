@@ -159,7 +159,6 @@ export default CalendarView;
 
 const styles = StyleSheet.create({
   container: {
-    // marginTop: theme.spacing.sm,
     paddingHorizontal: theme.spacing.md,
     flex: 1, // for scrollView
     backgroundColor: theme.colors.background,
@@ -167,8 +166,8 @@ const styles = StyleSheet.create({
   calendar: {
     borderRadius: theme.radius.md,
     padding: theme.spacing.xs,
-    // marginBottom: theme.spacing.md,
-    // ...theme.shadows.light,
+    marginBottom: theme.spacing.xs,
+    ...theme.shadows.light,
   },
   entryContainer: {
     flex: 1, // for scrollView
@@ -177,9 +176,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: theme.radius.md,
     marginTop: theme.spacing.sm,
+    marginBottom: theme.spacing.xs,
     borderWidth: 1,
     borderColor: "gainsboro",
-    // ...theme.shadows.medium,
+    ...theme.shadows.light,
   },
   inputContainer: {
     borderRadius: theme.radius.md,
